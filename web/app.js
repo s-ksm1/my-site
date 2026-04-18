@@ -9,6 +9,8 @@ const appThemeSeg = document.getElementById("app-theme-seg");
 const appLangSeg = document.getElementById("app-lang-seg");
 const authThemeLabel = document.getElementById("auth-theme-label");
 const authLangLabel = document.getElementById("auth-lang-label");
+const authPitchTitle = document.getElementById("auth-pitch-title");
+const authPitchBody = document.getElementById("auth-pitch-body");
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
@@ -90,6 +92,12 @@ const I18N = {
     themeAuto: "Авто",
     themeLight: "Светлая",
     themeDark: "Тёмная",
+    themeSegAuto: "Авто",
+    themeSegLight: "Свет",
+    themeSegDark: "Тёмн.",
+    authPitchTitle: "My Second Brain — блокнот PARA в браузере",
+    authPitchBody:
+      "Папки Projects · Areas · Resources · Archives, поиск, синхронизация. Один список задач — меньше хаоса в голове. Сделано для тех, кто думает письменно.",
     langRu: "RU",
     langEn: "EN",
     langUz: "UZ",
@@ -142,6 +150,12 @@ const I18N = {
     themeAuto: "Auto",
     themeLight: "Light",
     themeDark: "Dark",
+    themeSegAuto: "Auto",
+    themeSegLight: "Light",
+    themeSegDark: "Dark",
+    authPitchTitle: "My Second Brain — PARA notebook in your browser",
+    authPitchBody:
+      "Projects, Areas, Resources, Archives — search and sync across devices. Fewer tabs, more clarity. Built for people who think in notes.",
     langRu: "RU",
     langEn: "EN",
     langUz: "UZ",
@@ -194,6 +208,12 @@ const I18N = {
     themeAuto: "Avto",
     themeLight: "Yorug‘",
     themeDark: "Qorong‘i",
+    themeSegAuto: "Avto",
+    themeSegLight: "Yoru",
+    themeSegDark: "Qora",
+    authPitchTitle: "My Second Brain — brauzerda PARA daftarchasi",
+    authPitchBody:
+      "Loyihalar, sohalar, resurslar, arxiv — qidiruv va qurilmalar orasida sinxron. Kamroq xaos, ko‘proq tartib. Yozishni yurak bilan qiladiganlar uchun.",
     langRu: "RU",
     langEn: "EN",
     langUz: "UZ",
@@ -253,9 +273,9 @@ function debounce(fn, delayMs) {
 }
 
 const THEME_OPTIONS = [
-  { value: "auto", labelKey: "themeAuto" },
-  { value: "light", labelKey: "themeLight" },
-  { value: "dark", labelKey: "themeDark" }
+  { value: "auto", labelKey: "themeAuto", segmentKey: "themeSegAuto" },
+  { value: "light", labelKey: "themeLight", segmentKey: "themeSegLight" },
+  { value: "dark", labelKey: "themeDark", segmentKey: "themeSegDark" }
 ];
 
 const LANG_OPTIONS = [
@@ -265,12 +285,14 @@ const LANG_OPTIONS = [
 ];
 
 function renderThemeSegmentHTML() {
-  return THEME_OPTIONS.map(
-    (opt) =>
-      `<button type="button" class="segment-btn" data-value="${opt.value}" aria-pressed="false">${escapeHtml(
-        t(opt.labelKey)
-      )}</button>`
-  ).join("");
+  return THEME_OPTIONS.map((opt) => {
+    const full = t(opt.labelKey);
+    const shortLabel = t(opt.segmentKey);
+    const safeVal = escapeHtml(opt.value);
+    return `<button type="button" class="segment-btn" data-value="${safeVal}" aria-pressed="false" aria-label="${escapeHtml(
+      full
+    )}" title="${escapeHtml(full)}">${escapeHtml(shortLabel)}</button>`;
+  }).join("");
 }
 
 function renderLangSegmentHTML() {
@@ -428,6 +450,8 @@ function applyLanguage() {
   document.documentElement.setAttribute("lang", htmlLang);
   if (authThemeLabel) authThemeLabel.textContent = t("themeLabel");
   if (authLangLabel) authLangLabel.textContent = t("languageLabel");
+  if (authPitchTitle) authPitchTitle.textContent = t("authPitchTitle");
+  if (authPitchBody) authPitchBody.textContent = t("authPitchBody");
   if (authSubtitle) authSubtitle.textContent = t("authSubtitle");
   if (registerBtn) registerBtn.textContent = t("register");
   if (loginBtn) loginBtn.textContent = t("login");

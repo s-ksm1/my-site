@@ -111,7 +111,7 @@ body::before {
 }
 
 .auth {
-  max-width: 420px;
+  max-width: 460px;
   margin: 7vh auto;
   display: flex;
   flex-direction: column;
@@ -121,7 +121,31 @@ body::before {
 .auth-toggles {
   display: grid;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.auth-pitch {
+  margin: 2px 0 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--input-bg) 94%, var(--accent) 4%);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 58%, var(--border));
+}
+
+.auth-pitch__title {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.auth-pitch__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
 }
 
 .segment-label {
@@ -260,16 +284,38 @@ header .header-actions > button {
 }
 
 .header-actions .segment-toggle {
-  flex: 0 1 200px;
-  min-width: 0;
+  flex: 1 1 150px;
+  min-width: 132px;
 }
 
 .header-actions .segment-toggle#app-theme-seg {
-  max-width: 240px;
+  flex: 1 1 180px;
+  min-width: 176px;
+  max-width: min(100%, 320px);
 }
 
 .header-actions .segment-toggle#app-lang-seg {
-  max-width: 200px;
+  flex: 0 1 160px;
+  min-width: 118px;
+  max-width: 220px;
+}
+
+.segment-toggle--theme .segment-toggle__track {
+  min-height: 40px;
+  align-items: stretch;
+}
+
+.segment-toggle--theme .segment-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 4px;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 :root[data-density="compact"] .card {
@@ -303,6 +349,15 @@ header .header-actions > button {
   font-size: 11px;
 }
 
+:root[data-density="compact"] .segment-toggle--theme .segment-toggle__track {
+  min-height: 36px;
+}
+
+:root[data-density="compact"] .segment-toggle--theme .segment-btn {
+  font-size: 11px;
+  padding: 4px 3px;
+}
+
 :root[data-motion="reduced"] * {
   transition: none !important;
   animation: none !important;
@@ -317,9 +372,11 @@ header {
   margin: 16px auto;
   padding: 0 12px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: var(--gap);
+  row-gap: 10px;
 }
 
 header h2 {

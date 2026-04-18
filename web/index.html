@@ -10,10 +10,14 @@
     <div id="auth-view" class="card auth">
       <div class="auth-toggles" aria-label="Appearance">
         <div class="segment-label" id="auth-theme-label">Theme</div>
-        <div class="segment-toggle" id="auth-theme-seg" data-setting="theme" role="group"></div>
+        <div class="segment-toggle segment-toggle--theme" id="auth-theme-seg" data-setting="theme" role="group"></div>
         <div class="segment-label" id="auth-lang-label">Language</div>
         <div class="segment-toggle segment-toggle--lang" id="auth-lang-seg" data-setting="lang" role="group"></div>
       </div>
+      <section class="auth-pitch" id="auth-pitch" aria-labelledby="auth-pitch-title">
+        <p class="auth-pitch__title" id="auth-pitch-title" role="heading" aria-level="2"></p>
+        <p class="auth-pitch__body" id="auth-pitch-body"></p>
+      </section>
       <h1 id="auth-title">My Second Brain</h1>
       <p id="auth-subtitle">PARA: Projects / Areas / Resources / Archives</p>
       <input id="email" type="email" placeholder="Email" />
@@ -33,7 +37,13 @@
           <small id="me"></small>
         </div>
         <div class="header-actions">
-          <div class="segment-toggle" id="app-theme-seg" data-setting="theme" role="group" aria-label="Theme"></div>
+          <div
+            class="segment-toggle segment-toggle--theme"
+            id="app-theme-seg"
+            data-setting="theme"
+            role="group"
+            aria-label="Theme"
+          ></div>
           <div class="segment-toggle segment-toggle--lang" id="app-lang-seg" data-setting="lang" role="group" aria-label="Language"></div>
           <button id="logout-btn">Logout</button>
         </div>
