@@ -53,6 +53,8 @@ const customizationHeading = document.getElementById("customization-heading");
 const shareWebsiteHeading = document.getElementById("share-website-heading");
 const settingsDrawer = document.getElementById("settings-drawer");
 const createPanel = document.getElementById("create-panel");
+const notesToolbar = document.getElementById("notes-toolbar");
+const notesMain = document.getElementById("notes-main");
 const asidePanel = document.getElementById("aside-panel");
 const mobileNav = document.getElementById("mobile-nav");
 const mobileNavNotes = document.getElementById("mobile-nav-notes");
@@ -495,16 +497,25 @@ function setMobilePanel(nextPanel) {
   if (!compact || !asidePanel || !notesPanel || !mobileNav) return;
 
   mobileNav.classList.remove("hidden");
-  const blocks = Array.from(asidePanel.querySelectorAll("[data-mobile-panel]"));
-  blocks.forEach((block) => block.classList.add("hidden"));
-  if (nextPanel === "create" || nextPanel === "settings") {
-    const target = asidePanel.querySelector(`[data-mobile-panel="${nextPanel}"]`);
-    if (target) target.classList.remove("hidden");
+  const settingsBlock = asidePanel.querySelector('[data-mobile-panel="settings"]');
+
+  if (nextPanel === "settings") {
+    if (settingsBlock) settingsBlock.classList.remove("hidden");
     asidePanel.classList.remove("hidden");
     notesPanel.classList.add("hidden");
   } else {
     asidePanel.classList.add("hidden");
     notesPanel.classList.remove("hidden");
+
+    if (nextPanel === "create") {
+      if (createPanel) createPanel.classList.remove("hidden");
+      if (notesToolbar) notesToolbar.classList.add("hidden");
+      if (notesMain) notesMain.classList.add("hidden");
+    } else {
+      if (createPanel) createPanel.classList.add("hidden");
+      if (notesToolbar) notesToolbar.classList.remove("hidden");
+      if (notesMain) notesMain.classList.remove("hidden");
+    }
   }
 
   [mobileNavNotes, mobileNavCreate, mobileNavSettings].forEach((btn) => {
@@ -516,12 +527,15 @@ function setMobilePanel(nextPanel) {
 function syncDesktopPanels() {
   if (!asidePanel || !notesPanel || !mobileNav) return;
   const compact = window.matchMedia("(max-width: 900px)").matches;
-  const blocks = Array.from(asidePanel.querySelectorAll("[data-mobile-panel]"));
+  const asideBlocks = Array.from(asidePanel.querySelectorAll("[data-mobile-panel]"));
   if (!compact) {
     asidePanel.classList.remove("hidden");
     notesPanel.classList.remove("hidden");
     mobileNav.classList.add("hidden");
-    blocks.forEach((block) => block.classList.remove("hidden"));
+    asideBlocks.forEach((block) => block.classList.remove("hidden"));
+    if (createPanel) createPanel.classList.remove("hidden");
+    if (notesToolbar) notesToolbar.classList.remove("hidden");
+    if (notesMain) notesMain.classList.remove("hidden");
     if (settingsDrawer) settingsDrawer.open = false;
     return;
   }

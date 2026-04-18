@@ -51,19 +51,6 @@
 
       <main>
         <aside class="card" id="aside-panel">
-          <section class="panel-block" data-mobile-panel="create" id="create-panel">
-            <h3 id="create-note-heading">Create note</h3>
-            <input id="note-title" type="text" placeholder="Title" />
-            <select id="note-category">
-              <option value="projects">Projects</option>
-              <option value="areas">Areas</option>
-              <option value="resources" selected>Resources</option>
-              <option value="archives">Archives</option>
-            </select>
-            <textarea id="note-content" placeholder="Write your thought..."></textarea>
-            <button id="create-note-btn">Create</button>
-          </section>
-
           <section class="panel-block" data-mobile-panel="settings">
             <details id="settings-drawer">
               <summary id="customization-heading">Customization</summary>
@@ -117,14 +104,30 @@
         </aside>
 
         <section class="card grow">
-          <div class="toolbar">
+          <div class="toolbar" id="notes-toolbar">
             <input id="search" type="text" placeholder="Search notes..." />
             <small id="active-folder-label"></small>
             <button id="clear-folder-btn" type="button" class="hidden">All folders</button>
             <small id="sync-status"></small>
           </div>
-          <div class="notes-column">
-            <div id="notes"></div>
+          <div class="main-column">
+            <section class="create-column panel-block" data-mobile-panel="create" id="create-panel">
+              <h3 id="create-note-heading">Create note</h3>
+              <input id="note-title" type="text" placeholder="Title" />
+              <select id="note-category">
+                <option value="projects">Projects</option>
+                <option value="areas">Areas</option>
+                <option value="resources" selected>Resources</option>
+                <option value="archives">Archives</option>
+              </select>
+              <textarea id="note-content" placeholder="Write your thought..."></textarea>
+              <button id="create-note-btn">Create</button>
+            </section>
+            <div class="notes-main" id="notes-main" data-mobile-panel="notes">
+              <div class="notes-column">
+                <div id="notes"></div>
+              </div>
+            </div>
           </div>
         </section>
       </main>
