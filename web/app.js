@@ -250,34 +250,38 @@ function formatPrettyLink(url) {
 
 function applyLanguage() {
   localStorage.setItem("lang", currentLang);
-  if (languageMode) languageMode.value = currentLang;
-  authSubtitle.textContent = t("authSubtitle");
-  registerBtn.textContent = t("register");
-  loginBtn.textContent = t("login");
-  logoutBtn.textContent = t("logout");
-  createNoteHeading.textContent = t("createNote");
-  reportIssueHeading.textContent = t("reportIssue");
-  customizationHeading.textContent = t("customization");
-  shareWebsiteHeading.textContent = t("shareWebsite");
-  createNoteBtn.textContent = t("create");
-  issueBtn.textContent = t("sendIssue");
-  refreshPublicLinkBtn.textContent = t("refreshLink");
-  copyPublicLinkBtn.textContent = t("copyLink");
-  exportSettingsBtn.textContent = t("exportSettings");
-  importSettingsBtn.textContent = t("importSettings");
-  searchInput.placeholder = t("searchPlaceholder");
-  noteTitle.placeholder = t("noteTitlePlaceholder");
-  noteContent.placeholder = t("noteContentPlaceholder");
-  issueText.placeholder = t("issuePlaceholder");
-  displayNameInput.placeholder = t("displayNamePlaceholder");
-  appTitleInput.placeholder = t("appTitlePlaceholder");
-  profileLinkInput.placeholder = t("profileLinkPlaceholder");
-  if (!publicSiteLinkInput.value) {
+  if (languageMode) {
+    languageMode.value = currentLang;
+  }
+  if (authSubtitle) authSubtitle.textContent = t("authSubtitle");
+  if (registerBtn) registerBtn.textContent = t("register");
+  if (loginBtn) loginBtn.textContent = t("login");
+  if (logoutBtn) logoutBtn.textContent = t("logout");
+  if (createNoteHeading) createNoteHeading.textContent = t("createNote");
+  if (reportIssueHeading) reportIssueHeading.textContent = t("reportIssue");
+  if (customizationHeading) customizationHeading.textContent = t("customization");
+  if (shareWebsiteHeading) shareWebsiteHeading.textContent = t("shareWebsite");
+  if (createNoteBtn) createNoteBtn.textContent = t("create");
+  if (issueBtn) issueBtn.textContent = t("sendIssue");
+  if (refreshPublicLinkBtn) refreshPublicLinkBtn.textContent = t("refreshLink");
+  if (copyPublicLinkBtn) copyPublicLinkBtn.textContent = t("copyLink");
+  if (exportSettingsBtn) exportSettingsBtn.textContent = t("exportSettings");
+  if (importSettingsBtn) importSettingsBtn.textContent = t("importSettings");
+  if (searchInput) searchInput.placeholder = t("searchPlaceholder");
+  if (noteTitle) noteTitle.placeholder = t("noteTitlePlaceholder");
+  if (noteContent) noteContent.placeholder = t("noteContentPlaceholder");
+  if (issueText) issueText.placeholder = t("issuePlaceholder");
+  if (displayNameInput) displayNameInput.placeholder = t("displayNamePlaceholder");
+  if (appTitleInput) appTitleInput.placeholder = t("appTitlePlaceholder");
+  if (profileLinkInput) profileLinkInput.placeholder = t("profileLinkPlaceholder");
+  if (publicSiteLinkInput && !publicSiteLinkInput.value) {
     publicSiteLinkInput.placeholder = t("publicLinkPlaceholder");
   }
-  Array.from(noteCategory.options).forEach((opt) => {
-    opt.textContent = categoryLabel(opt.value);
-  });
+  if (noteCategory) {
+    Array.from(noteCategory.options).forEach((opt) => {
+      opt.textContent = categoryLabel(opt.value);
+    });
+  }
   renderPrettyLink();
 }
 
@@ -420,6 +424,7 @@ function applyImportedSettings(next) {
 }
 
 async function loadPublicSiteLink() {
+  if (!publicSiteLinkInput) return;
   try {
     const res = await fetch("/api/public-link", {
       headers: { "Content-Type": "application/json" }
@@ -439,6 +444,7 @@ async function loadPublicSiteLink() {
 }
 
 async function copyPublicLink() {
+  if (!publicSiteLinkInput) return;
   const value = publicSiteLinkInput.value.trim();
   if (!value) {
     alert(t("noLink"));
@@ -718,84 +724,111 @@ async function sendIssue() {
   }
 }
 
-registerBtn.addEventListener("click", () => doAuth("register"));
-loginBtn.addEventListener("click", () => doAuth("login"));
-logoutBtn.addEventListener("click", () => {
-  clearAuth();
-  notes = [];
-  setView();
-  renderNotes();
-  if (syncTimer) clearInterval(syncTimer);
-  stopLiveEvents();
-});
-
-createNoteBtn.addEventListener("click", createNote);
-searchInput.addEventListener("input", renderNotes);
-issueBtn.addEventListener("click", sendIssue);
-avatarEmojiInput.addEventListener("input", () => {
-  localStorage.setItem("avatar-emoji", avatarEmojiInput.value.trim().slice(0, 3));
-  setView();
-});
-themeMode.addEventListener("change", () => {
-  const mode = themeMode.value;
-  localStorage.setItem("theme-mode", mode);
-  applyTheme(mode);
-});
-displayNameInput.addEventListener("input", () => {
-  localStorage.setItem("display-name", displayNameInput.value.trim());
-  setView();
-});
-appTitleInput.addEventListener("input", () => {
-  localStorage.setItem("app-title", appTitleInput.value.trim());
-  applyAppTitle(appTitleInput.value);
-});
-accentColorInput.addEventListener("change", () => {
-  localStorage.setItem("accent-color", accentColorInput.value);
-  applyAccentColor(accentColorInput.value);
-});
-fontFamilyInput.addEventListener("change", () => {
-  localStorage.setItem("font-family", fontFamilyInput.value);
-  applyFontFamily(fontFamilyInput.value);
-});
-bgPatternInput.addEventListener("change", () => {
-  localStorage.setItem("bg-pattern", bgPatternInput.value);
-  applyBgPattern(bgPatternInput.value);
-});
-densityModeInput.addEventListener("change", () => {
-  localStorage.setItem("density-mode", densityModeInput.value);
-  applyDensityMode(densityModeInput.value);
-});
-motionModeInput.addEventListener("change", () => {
-  localStorage.setItem("motion-mode", motionModeInput.value);
-  applyMotionMode(motionModeInput.value);
-});
-languageMode.addEventListener("change", () => {
-  currentLang = languageMode.value;
-  applyLanguage();
-  renderNotes();
-});
-profileLinkInput.addEventListener("input", () => {
-  localStorage.setItem("profile-link", profileLinkInput.value.trim());
-  renderPrettyLink();
-});
-exportSettingsBtn.addEventListener("click", exportSettings);
-importSettingsBtn.addEventListener("click", () => importSettingsFile.click());
-refreshPublicLinkBtn.addEventListener("click", loadPublicSiteLink);
-copyPublicLinkBtn.addEventListener("click", copyPublicLink);
-importSettingsFile.addEventListener("change", async () => {
-  const [file] = importSettingsFile.files || [];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const parsed = JSON.parse(text);
-    applyImportedSettings(parsed);
-    alert(t("imported"));
-  } catch (error) {
-    alert(t("importError"));
-  } finally {
-    importSettingsFile.value = "";
-  }
-});
+if (registerBtn) registerBtn.addEventListener("click", () => doAuth("register"));
+if (loginBtn) loginBtn.addEventListener("click", () => doAuth("login"));
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    clearAuth();
+    notes = [];
+    setView();
+    renderNotes();
+    if (syncTimer) clearInterval(syncTimer);
+    stopLiveEvents();
+  });
+}
+if (createNoteBtn) createNoteBtn.addEventListener("click", createNote);
+if (searchInput) searchInput.addEventListener("input", renderNotes);
+if (issueBtn) issueBtn.addEventListener("click", sendIssue);
+if (avatarEmojiInput) {
+  avatarEmojiInput.addEventListener("input", () => {
+    localStorage.setItem("avatar-emoji", avatarEmojiInput.value.trim().slice(0, 3));
+    setView();
+  });
+}
+if (themeMode) {
+  themeMode.addEventListener("change", () => {
+    const mode = themeMode.value;
+    localStorage.setItem("theme-mode", mode);
+    applyTheme(mode);
+  });
+}
+if (displayNameInput) {
+  displayNameInput.addEventListener("input", () => {
+    localStorage.setItem("display-name", displayNameInput.value.trim());
+    setView();
+  });
+}
+if (appTitleInput) {
+  appTitleInput.addEventListener("input", () => {
+    localStorage.setItem("app-title", appTitleInput.value.trim());
+    applyAppTitle(appTitleInput.value);
+  });
+}
+if (accentColorInput) {
+  accentColorInput.addEventListener("change", () => {
+    localStorage.setItem("accent-color", accentColorInput.value);
+    applyAccentColor(accentColorInput.value);
+  });
+}
+if (fontFamilyInput) {
+  fontFamilyInput.addEventListener("change", () => {
+    localStorage.setItem("font-family", fontFamilyInput.value);
+    applyFontFamily(fontFamilyInput.value);
+  });
+}
+if (bgPatternInput) {
+  bgPatternInput.addEventListener("change", () => {
+    localStorage.setItem("bg-pattern", bgPatternInput.value);
+    applyBgPattern(bgPatternInput.value);
+  });
+}
+if (densityModeInput) {
+  densityModeInput.addEventListener("change", () => {
+    localStorage.setItem("density-mode", densityModeInput.value);
+    applyDensityMode(densityModeInput.value);
+  });
+}
+if (motionModeInput) {
+  motionModeInput.addEventListener("change", () => {
+    localStorage.setItem("motion-mode", motionModeInput.value);
+    applyMotionMode(motionModeInput.value);
+  });
+}
+if (languageMode) {
+  languageMode.addEventListener("change", () => {
+    currentLang = languageMode.value;
+    applyLanguage();
+    renderNotes();
+  });
+}
+if (profileLinkInput) {
+  profileLinkInput.addEventListener("input", () => {
+    localStorage.setItem("profile-link", profileLinkInput.value.trim());
+    renderPrettyLink();
+  });
+}
+if (exportSettingsBtn) exportSettingsBtn.addEventListener("click", exportSettings);
+if (importSettingsBtn && importSettingsFile) {
+  importSettingsBtn.addEventListener("click", () => importSettingsFile.click());
+}
+if (refreshPublicLinkBtn) refreshPublicLinkBtn.addEventListener("click", loadPublicSiteLink);
+if (copyPublicLinkBtn) copyPublicLinkBtn.addEventListener("click", copyPublicLink);
+if (importSettingsFile) {
+  importSettingsFile.addEventListener("change", async () => {
+    const [file] = importSettingsFile.files || [];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      applyImportedSettings(parsed);
+      alert(t("imported"));
+    } catch (error) {
+      alert(t("importError"));
+    } finally {
+      importSettingsFile.value = "";
+    }
+  });
+}
 
 notesWrap.addEventListener("click", async (event) => {
   const target = event.target;
