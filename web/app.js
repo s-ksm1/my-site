@@ -43,6 +43,12 @@ const createNoteHeading = document.getElementById("create-note-heading");
 const reportIssueHeading = document.getElementById("report-issue-heading");
 const customizationHeading = document.getElementById("customization-heading");
 const shareWebsiteHeading = document.getElementById("share-website-heading");
+const asidePanel = document.getElementById("aside-panel");
+const mobileNav = document.getElementById("mobile-nav");
+const mobileNavNotes = document.getElementById("mobile-nav-notes");
+const mobileNavCreate = document.getElementById("mobile-nav-create");
+const mobileNavSettings = document.getElementById("mobile-nav-settings");
+const notesPanel = document.querySelector("section.grow");
 
 let token = localStorage.getItem("token") || "";
 let user = JSON.parse(localStorage.getItem("user") || "null");
@@ -52,6 +58,7 @@ let lastSync = 0;
 let eventsConnection = null;
 let publicLinkTimer = null;
 let currentLang = localStorage.getItem("lang") || "ru";
+let mobilePanel = "notes";
 
 const I18N = {
   ru: {
@@ -63,6 +70,9 @@ const I18N = {
     reportIssue: "Сообщить о проблеме",
     customization: "Кастомизация",
     shareWebsite: "Поделиться сайтом",
+    navNotes: "Заметки",
+    navCreate: "Создать",
+    navSettings: "Настройки",
     create: "Создать",
     sendIssue: "Отправить разработчику",
     refreshLink: "Обновить ссылку",
@@ -102,6 +112,9 @@ const I18N = {
     reportIssue: "Report issue",
     customization: "Customization",
     shareWebsite: "Share website",
+    navNotes: "Notes",
+    navCreate: "Create",
+    navSettings: "Settings",
     create: "Create",
     sendIssue: "Send to developer",
     refreshLink: "Refresh link",
@@ -141,6 +154,9 @@ const I18N = {
     reportIssue: "Muammo haqida yuborish",
     customization: "Moslash",
     shareWebsite: "Sayt havolasini ulashish",
+    navNotes: "Eslatmalar",
+    navCreate: "Yaratish",
+    navSettings: "Sozlamalar",
     create: "Yaratish",
     sendIssue: "Dasturchiga yuborish",
     refreshLink: "Havolani yangilash",
@@ -267,6 +283,9 @@ function applyLanguage() {
   if (copyPublicLinkBtn) copyPublicLinkBtn.textContent = t("copyLink");
   if (exportSettingsBtn) exportSettingsBtn.textContent = t("exportSettings");
   if (importSettingsBtn) importSettingsBtn.textContent = t("importSettings");
+  if (mobileNavNotes) mobileNavNotes.textContent = t("navNotes");
+  if (mobileNavCreate) mobileNavCreate.textContent = t("navCreate");
+  if (mobileNavSettings) mobileNavSettings.textContent = t("navSettings");
   if (searchInput) searchInput.placeholder = t("searchPlaceholder");
   if (noteTitle) noteTitle.placeholder = t("noteTitlePlaceholder");
   if (noteContent) noteContent.placeholder = t("noteContentPlaceholder");
@@ -283,6 +302,44 @@ function applyLanguage() {
     });
   }
   renderPrettyLink();
+}
+
+function setMobilePanel(nextPanel) {
+  mobilePanel = nextPanel;
+  const compact = window.matchMedia("(max-width: 900px)").matches;
+  if (!compact || !asidePanel || !notesPanel || !mobileNav) return;
+
+  mobileNav.classList.remove("hidden");
+  const blocks = Array.from(asidePanel.querySelectorAll("[data-mobile-panel]"));
+  blocks.forEach((block) => block.classList.add("hidden"));
+  if (nextPanel === "create" || nextPanel === "settings") {
+    const target = asidePanel.querySelector(`[data-mobile-panel="${nextPanel}"]`);
+    if (target) target.classList.remove("hidden");
+    asidePanel.classList.remove("hidden");
+    notesPanel.classList.add("hidden");
+  } else {
+    asidePanel.classList.add("hidden");
+    notesPanel.classList.remove("hidden");
+  }
+
+  [mobileNavNotes, mobileNavCreate, mobileNavSettings].forEach((btn) => {
+    if (!btn) return;
+    btn.classList.toggle("active", btn.dataset.mobileTarget === nextPanel);
+  });
+}
+
+function syncDesktopPanels() {
+  if (!asidePanel || !notesPanel || !mobileNav) return;
+  const compact = window.matchMedia("(max-width: 900px)").matches;
+  const blocks = Array.from(asidePanel.querySelectorAll("[data-mobile-panel]"));
+  if (!compact) {
+    asidePanel.classList.remove("hidden");
+    notesPanel.classList.remove("hidden");
+    mobileNav.classList.add("hidden");
+    blocks.forEach((block) => block.classList.remove("hidden"));
+    return;
+  }
+  setMobilePanel(mobilePanel);
 }
 
 function renderPrettyLink() {
@@ -801,6 +858,13 @@ if (languageMode) {
     renderNotes();
   });
 }
+if (mobileNav) {
+  mobileNav.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-mobile-target]");
+    if (!target) return;
+    setMobilePanel(target.dataset.mobileTarget);
+  });
+}
 if (profileLinkInput) {
   profileLinkInput.addEventListener("input", () => {
     localStorage.setItem("profile-link", profileLinkInput.value.trim());
@@ -852,6 +916,8 @@ async function boot() {
   applyLanguage();
   applyTheme(getThemeMode());
   applyCustomization();
+  syncDesktopPanels();
+  window.addEventListener("resize", syncDesktopPanels);
   await loadPublicSiteLink();
   if (publicLinkTimer) clearInterval(publicLinkTimer);
   publicLinkTimer = setInterval(loadPublicSiteLink, 12000);
