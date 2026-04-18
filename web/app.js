@@ -3,8 +3,12 @@ const appView = document.getElementById("app-view");
 const authError = document.getElementById("auth-error");
 const meLabel = document.getElementById("me");
 const syncStatus = document.getElementById("sync-status");
-const themeMode = document.getElementById("theme-mode");
-const languageMode = document.getElementById("language-mode");
+const authThemeSeg = document.getElementById("auth-theme-seg");
+const authLangSeg = document.getElementById("auth-lang-seg");
+const appThemeSeg = document.getElementById("app-theme-seg");
+const appLangSeg = document.getElementById("app-lang-seg");
+const authThemeLabel = document.getElementById("auth-theme-label");
+const authLangLabel = document.getElementById("auth-lang-label");
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
@@ -81,6 +85,14 @@ const I18N = {
     navNotes: "Заметки",
     navCreate: "Создать",
     navSettings: "Настройки",
+    themeLabel: "Тема",
+    languageLabel: "Язык",
+    themeAuto: "Авто",
+    themeLight: "Светлая",
+    themeDark: "Тёмная",
+    langRu: "RU",
+    langEn: "EN",
+    langUz: "UZ",
     create: "Создать",
     sendIssue: "Отправить разработчику",
     refreshLink: "Обновить ссылку",
@@ -125,6 +137,14 @@ const I18N = {
     navNotes: "Notes",
     navCreate: "Create",
     navSettings: "Settings",
+    themeLabel: "Theme",
+    languageLabel: "Language",
+    themeAuto: "Auto",
+    themeLight: "Light",
+    themeDark: "Dark",
+    langRu: "RU",
+    langEn: "EN",
+    langUz: "UZ",
     create: "Create",
     sendIssue: "Send to developer",
     refreshLink: "Refresh link",
@@ -169,6 +189,14 @@ const I18N = {
     navNotes: "Eslatmalar",
     navCreate: "Yaratish",
     navSettings: "Sozlamalar",
+    themeLabel: "Mavzu",
+    languageLabel: "Til",
+    themeAuto: "Avto",
+    themeLight: "Yorug‘",
+    themeDark: "Qorong‘i",
+    langRu: "RU",
+    langEn: "EN",
+    langUz: "UZ",
     create: "Yaratish",
     sendIssue: "Dasturchiga yuborish",
     refreshLink: "Havolani yangilash",
@@ -207,12 +235,120 @@ function t(key) {
   return I18N[currentLang]?.[key] || I18N.en[key] || key;
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function debounce(fn, delayMs) {
   let timer = null;
   return (...args) => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delayMs);
   };
+}
+
+const THEME_OPTIONS = [
+  { value: "auto", labelKey: "themeAuto" },
+  { value: "light", labelKey: "themeLight" },
+  { value: "dark", labelKey: "themeDark" }
+];
+
+const LANG_OPTIONS = [
+  { value: "ru", labelKey: "langRu" },
+  { value: "en", labelKey: "langEn" },
+  { value: "uz", labelKey: "langUz" }
+];
+
+function renderThemeSegmentHTML() {
+  return THEME_OPTIONS.map(
+    (opt) =>
+      `<button type="button" class="segment-btn" data-value="${opt.value}" aria-pressed="false">${escapeHtml(
+        t(opt.labelKey)
+      )}</button>`
+  ).join("");
+}
+
+function renderLangSegmentHTML() {
+  return LANG_OPTIONS.map(
+    (opt) =>
+      `<button type="button" class="segment-btn" data-value="${opt.value}" aria-pressed="false">${escapeHtml(
+        t(opt.labelKey)
+      )}</button>`
+  ).join("");
+}
+
+function syncThemeSegmentsVisual(storedMode) {
+  [authThemeSeg, appThemeSeg].forEach((container) => {
+    if (!container) return;
+    const idx = Math.max(
+      0,
+      THEME_OPTIONS.findIndex((o) => o.value === storedMode)
+    );
+    container.style.setProperty("--segment-index", String(idx));
+    container.querySelectorAll(".segment-btn").forEach((btn) => {
+      const on = btn.dataset.value === storedMode;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+}
+
+function syncLangSegmentsVisual() {
+  [authLangSeg, appLangSeg].forEach((container) => {
+    if (!container) return;
+    const idx = Math.max(0, LANG_OPTIONS.findIndex((o) => o.value === currentLang));
+    container.style.setProperty("--segment-index", String(idx));
+    container.querySelectorAll(".segment-btn").forEach((btn) => {
+      const on = btn.dataset.value === currentLang;
+      btn.classList.toggle("is-active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+}
+
+function refreshSegmentToggleLabels() {
+  [authThemeSeg, appThemeSeg].forEach((el) => {
+    if (!el) return;
+    el.innerHTML = `<div class="segment-toggle__track">${renderThemeSegmentHTML()}</div>`;
+  });
+  [authLangSeg, appLangSeg].forEach((el) => {
+    if (!el) return;
+    el.innerHTML = `<div class="segment-toggle__track">${renderLangSegmentHTML()}</div>`;
+  });
+  syncThemeSegmentsVisual(getThemeMode());
+  syncLangSegmentsVisual();
+}
+
+let segmentListenersBound = false;
+
+function bindSegmentListenersOnce() {
+  if (segmentListenersBound) return;
+  segmentListenersBound = true;
+  document.body.addEventListener("click", (event) => {
+    const btn = event.target.closest(".segment-toggle .segment-btn");
+    if (!btn) return;
+    const container = btn.closest(".segment-toggle");
+    if (!container) return;
+    const setting = container.dataset.setting;
+    const value = btn.dataset.value;
+    if (setting === "theme") {
+      localStorage.setItem("theme-mode", value);
+      applyTheme(value);
+      syncThemeSegmentsVisual(value);
+    }
+    if (setting === "lang") {
+      currentLang = value;
+      applyLanguage();
+      renderSignature = "";
+      renderNotes();
+      syncLangSegmentsVisual();
+    }
+  });
 }
 
 function getAvatarEmoji() {
@@ -288,9 +424,10 @@ function formatPrettyLink(url) {
 
 function applyLanguage() {
   localStorage.setItem("lang", currentLang);
-  if (languageMode) {
-    languageMode.value = currentLang;
-  }
+  const htmlLang = currentLang === "en" ? "en" : currentLang === "uz" ? "uz" : "ru";
+  document.documentElement.setAttribute("lang", htmlLang);
+  if (authThemeLabel) authThemeLabel.textContent = t("themeLabel");
+  if (authLangLabel) authLangLabel.textContent = t("languageLabel");
   if (authSubtitle) authSubtitle.textContent = t("authSubtitle");
   if (registerBtn) registerBtn.textContent = t("register");
   if (loginBtn) loginBtn.textContent = t("login");
@@ -325,6 +462,7 @@ function applyLanguage() {
     });
   }
   renderPrettyLink();
+  refreshSegmentToggleLabels();
 }
 
 function setMobilePanel(nextPanel) {
@@ -564,9 +702,8 @@ function applyTheme(mode) {
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const nextTheme = mode === "auto" ? (prefersDark ? "dark" : "light") : mode;
   document.documentElement.setAttribute("data-theme", nextTheme);
-  if (themeMode) {
-    themeMode.value = mode;
-  }
+  document.documentElement.setAttribute("data-theme-storage", mode);
+  syncThemeSegmentsVisual(mode);
 }
 
 async function api(path, options = {}) {
@@ -690,15 +827,6 @@ function renderNotes() {
   }
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 async function refreshNotes() {
   const data = await api("/api/notes");
   notes = data.notes;
@@ -817,11 +945,21 @@ async function createNote() {
       method: "POST",
       body: JSON.stringify(payload)
     });
-    notes.unshift(data.note);
+    const newNote = data.note;
+    notes.unshift(newNote);
+    activeFolder = newNote.category;
     renderSignature = "";
     renderNotes();
     noteTitle.value = "";
     noteContent.value = "";
+    requestAnimationFrame(() => {
+      const el = notesWrap.querySelector(`article.note[data-id="${newNote.id}"]`);
+      if (el) {
+        el.classList.add("note--new");
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        setTimeout(() => el.classList.remove("note--new"), 1400);
+      }
+    });
   } catch (error) {
     alert(error.message);
   }
@@ -900,13 +1038,6 @@ if (avatarEmojiInput) {
     setView();
   });
 }
-if (themeMode) {
-  themeMode.addEventListener("change", () => {
-    const mode = themeMode.value;
-    localStorage.setItem("theme-mode", mode);
-    applyTheme(mode);
-  });
-}
 if (displayNameInput) {
   displayNameInput.addEventListener("input", () => {
     localStorage.setItem("display-name", displayNameInput.value.trim());
@@ -947,14 +1078,6 @@ if (motionModeInput) {
   motionModeInput.addEventListener("change", () => {
     localStorage.setItem("motion-mode", motionModeInput.value);
     applyMotionMode(motionModeInput.value);
-  });
-}
-if (languageMode) {
-  languageMode.addEventListener("change", () => {
-    currentLang = languageMode.value;
-    applyLanguage();
-    renderSignature = "";
-    renderNotes();
   });
 }
 if (mobileNav) {
@@ -1034,6 +1157,7 @@ notesWrap.addEventListener("click", async (event) => {
 });
 
 async function boot() {
+  bindSegmentListenersOnce();
   if (!I18N[currentLang]) currentLang = "ru";
   applyLanguage();
   applyTheme(getThemeMode());
