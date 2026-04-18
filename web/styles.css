@@ -14,6 +14,8 @@
   --button-bg-hover: var(--accent-hover);
   --danger-bg: #b91c1c;
   --danger-bg-hover: #991b1b;
+  --radius: 16px;
+  --gap: 12px;
   color-scheme: light;
 }
 
@@ -68,6 +70,7 @@ body {
     linear-gradient(160deg, color-mix(in srgb, var(--bg) 88%, #ffffff 12%), var(--bg));
   color: var(--text);
   min-height: 100vh;
+  line-height: 1.4;
 }
 
 :root[data-pattern="dots"] body {
@@ -89,7 +92,7 @@ body {
 .card {
   background: linear-gradient(135deg, var(--panel-strong), var(--panel));
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 16px;
   box-shadow:
     0 16px 40px rgba(5, 10, 20, 0.16),
@@ -111,7 +114,7 @@ body {
   margin: 7vh auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--gap);
 }
 
 input,
@@ -121,9 +124,11 @@ button {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
   background: var(--input-bg);
   color: var(--input-text);
+  min-height: 44px;
+  font-size: 16px;
 }
 
 button {
@@ -171,6 +176,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--gap);
 }
 
 header h2 {
@@ -182,6 +188,8 @@ header h2 {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 main {
@@ -189,8 +197,9 @@ main {
   margin: 0 auto;
   padding: 0 12px 20px;
   display: grid;
-  gap: 12px;
+  gap: var(--gap);
   grid-template-columns: 320px 1fr;
+  align-items: start;
 }
 
 main > aside.card {
@@ -198,6 +207,7 @@ main > aside.card {
   top: 12px;
   max-height: calc(100vh - 24px);
   overflow: auto;
+  scrollbar-width: thin;
 }
 
 .grow {
@@ -207,6 +217,7 @@ main > aside.card {
 .row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 textarea {
@@ -217,12 +228,13 @@ textarea {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 #notes {
   margin-top: 10px;
   display: grid;
-  gap: 10px;
+  gap: var(--gap);
 }
 
 .note {
@@ -264,6 +276,7 @@ textarea {
   display: flex;
   gap: 8px;
   margin-top: 6px;
+  flex-wrap: wrap;
 }
 
 .danger {
@@ -290,20 +303,120 @@ textarea {
   background: color-mix(in srgb, var(--button-bg) 20%, transparent);
   border: 1px solid color-mix(in srgb, var(--button-bg) 50%, var(--border));
   color: var(--text);
+  width: 100%;
 }
 
 .pretty-link:hover {
   background: color-mix(in srgb, var(--button-bg) 24%, transparent);
 }
 
+@media (max-width: 1100px) {
+  main {
+    grid-template-columns: 290px 1fr;
+  }
+}
+
 @media (max-width: 900px) {
+  body {
+    padding-bottom: 10px;
+  }
+
+  header {
+    margin: 12px auto;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  header > div:first-child {
+    min-width: 0;
+  }
+
+  #me {
+    display: inline-block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   main {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "notes"
+      "aside";
   }
 
   main > aside.card {
     position: static;
     max-height: none;
+    grid-area: aside;
+  }
+
+  main > section.card {
+    grid-area: notes;
+  }
+
+  .grow {
+    min-height: 54vh;
+  }
+
+  .note-actions > * {
+    flex: 1 1 140px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .header-actions select,
+  .header-actions button {
+    flex: 1 1 120px;
+  }
+
+  .toolbar > * {
+    flex: 1 1 180px;
+  }
+
+  .toolbar #sync-status {
+    order: 3;
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --radius: 14px;
+    --gap: 10px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin-top: 0;
+  }
+
+  .auth {
+    margin: 3vh 10px;
+  }
+
+  main {
+    padding: 0 8px 12px;
+  }
+
+  header {
+    padding: 0 8px;
+  }
+
+  .row > * {
+    flex: 1 1 100%;
   }
 }
 
