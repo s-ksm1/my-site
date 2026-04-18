@@ -621,32 +621,35 @@ function renderNotes() {
     .filter((g) => g.notes.length > 0)
     .map(
       (g) => `
-      <section class="folder-group">
-        <details class="folder-details" open>
-          <summary>${escapeHtml(categoryLabel(g.category))} <span class="folder-count">${g.notes.length}</span></summary>
-          <div class="folder-notes">
+      <section class="tree-group">
+        <details class="tree-node" open>
+          <summary><span class="tree-caret">▾</span>${escapeHtml(categoryLabel(g.category))} <span class="folder-count">(${g.notes.length})</span></summary>
+          <div class="tree-children">
             ${g.notes
               .map(
                 (n) => `
-              <article class="note" data-id="${n.id}">
-                <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
-                <div class="meta">${categoryLabel(n.category)} - ${formatDate(n.updatedAt)}</div>
-                <textarea data-role="content">${escapeHtml(n.content)}</textarea>
-                <div class="note-actions">
-                  <select data-role="category">
-                    ${["projects", "areas", "resources", "archives"]
-                      .map(
-                        (c) =>
-                          `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(
-                            categoryLabel(c)
-                          )}</option>`
-                      )
-                      .join("")}
-                  </select>
-                  <button data-role="save">${escapeHtml(t("save"))}</button>
-                  <button class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
-                </div>
-              </article>
+              <div class="tree-item">
+                <span class="tree-bullet">•</span>
+                <article class="note" data-id="${n.id}">
+                  <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
+                  <div class="meta">${categoryLabel(n.category)} - ${formatDate(n.updatedAt)}</div>
+                  <textarea data-role="content">${escapeHtml(n.content)}</textarea>
+                  <div class="note-actions">
+                    <select data-role="category">
+                      ${["projects", "areas", "resources", "archives"]
+                        .map(
+                          (c) =>
+                            `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(
+                              categoryLabel(c)
+                            )}</option>`
+                        )
+                        .join("")}
+                    </select>
+                    <button data-role="save">${escapeHtml(t("save"))}</button>
+                    <button class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
+                  </div>
+                </article>
+              </div>
             `
               )
               .join("")}
