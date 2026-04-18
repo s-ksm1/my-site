@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "id": "f3ea2060-bd0f-417e-8dae-bdb79606a8c0",
+      "email": "bumblebee.autobot.bee@gmail.com",
+      "passwordHash": "$2a$10$9zGz4TDLq0uW6KpEOkovru2BveUvEyNS4wQ2BL4VRjTYSsYWpGs.m",
+      "createdAt": 1776509629904
+    }
+  ],
+  "notes": [
+    {
+      "id": "a0f558ec-c515-4a82-848f-c760bdb8a8d7",
+      "userId": "f3ea2060-bd0f-417e-8dae-bdb79606a8c0",
+      "title": "Тест",
+      "content": "Так, ребятки, это тест моего приложения, которое написал cursor.",
+      "category": "projects",
+      "createdAt": 1776509698661,
+      "updatedAt": 1776509705537,
+      "deletedAt": null
+    },
+    {
+      "id": "8652db20-b543-4d59-9efa-b67102f4d641",
+      "userId": "f3ea2060-bd0f-417e-8dae-bdb79606a8c0",
+      "title": "Все тот же тест",
+      "content": "Просто в шоке, так можно полностью весь свой софт переписать на пк, вообще круто!",
+      "category": "projects",
+      "createdAt": 1776510021658,
+      "updatedAt": 1776526241753,
+      "deletedAt": null
+    },
+    {
+      "id": "dba790e5-33b9-497f-8bf0-0496c92b773e",
+      "userId": "f3ea2060-bd0f-417e-8dae-bdb79606a8c0",
+      "title": "Untitled",
+      "content": "",
+      "category": "projects",
+      "createdAt": 1776510071392,
+      "updatedAt": 1776510216727,
+      "deletedAt": 1776510216727
+    },
+    {
+      "id": "9f1f1ec5-3fc2-4b67-90ab-194ae95a7789",
+      "userId": "f3ea2060-bd0f-417e-8dae-bdb79606a8c0",
+      "title": "Первые трудности",
+      "content": "Ну вроде получилось, но знаете, оказывается есть лимиты на сообщения, и вот на такой стадии сайт встал. Сейчас что-то придумаю",
+      "category": "projects",
+      "createdAt": 1776525231101,
+      "updatedAt": 1776525246979,
+      "deletedAt": 1776525246979
+    },
+    {
+      "id": "a65b3610-04c3-4d2c-8534-d9127b3781ee",
+      "userId": "f3ea2060-bd0f-417e-8dae-bdb79606a8c0",
+      "title": "Первые трудности",
+      "content": "Что-то сейчас ошибка какая-товозникла.",
+      "category": "projects",
+      "createdAt": 1776525275473,
+      "updatedAt": 1776526229333,
+      "deletedAt": null
+    }
+  ]
+}

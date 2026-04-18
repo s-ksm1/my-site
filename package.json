@@ -1,0 +1,17 @@
+{
+  "name": "my-second-brain-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Second brain app with PARA, auth, and sync.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0"
+  }
+}
+

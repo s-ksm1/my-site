@@ -1,0 +1,275 @@
+:root {
+  font-family: Arial, sans-serif;
+  --bg: #e9edf5;
+  --text: #111827;
+  --panel: rgba(255, 255, 255, 0.5);
+  --panel-strong: rgba(255, 255, 255, 0.72);
+  --border: rgba(255, 255, 255, 0.55);
+  --muted: #5b6576;
+  --input-bg: rgba(255, 255, 255, 0.65);
+  --input-text: #111827;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --button-bg: var(--accent);
+  --button-bg-hover: var(--accent-hover);
+  --danger-bg: #b91c1c;
+  --danger-bg-hover: #991b1b;
+  color-scheme: light;
+}
+
+:root[data-font="serif"] {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+:root[data-font="mono"] {
+  font-family: "Consolas", "Courier New", monospace;
+}
+
+:root[data-accent="purple"] {
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+}
+
+:root[data-accent="green"] {
+  --accent: #059669;
+  --accent-hover: #047857;
+}
+
+:root[data-accent="orange"] {
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --text: #f3f4f6;
+  --panel: rgba(18, 25, 41, 0.5);
+  --panel-strong: rgba(19, 28, 46, 0.72);
+  --border: rgba(164, 184, 219, 0.2);
+  --muted: #9fb0c9;
+  --input-bg: rgba(10, 17, 30, 0.56);
+  --input-text: #f9fafb;
+  --button-bg: color-mix(in srgb, var(--accent) 72%, white);
+  --button-bg-hover: color-mix(in srgb, var(--accent-hover) 78%, white);
+  --danger-bg: #b91c1c;
+  --danger-bg-hover: #991b1b;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--button-bg) 24%, transparent), transparent 38%),
+    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.16), transparent 32%),
+    linear-gradient(160deg, color-mix(in srgb, var(--bg) 88%, #ffffff 12%), var(--bg));
+  color: var(--text);
+  min-height: 100vh;
+}
+
+:root[data-pattern="dots"] body {
+  background-image: radial-gradient(color-mix(in srgb, var(--text) 8%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+:root[data-pattern="grid"] body {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--text) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--text) 8%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.card {
+  background: linear-gradient(135deg, var(--panel-strong), var(--panel));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow:
+    0 16px 40px rgba(5, 10, 20, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.auth {
+  max-width: 420px;
+  margin: 7vh auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input,
+textarea,
+select,
+button {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--input-bg);
+  color: var(--input-text);
+}
+
+button {
+  cursor: pointer;
+  background: var(--button-bg);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--button-bg) 35%, transparent);
+}
+
+button:hover {
+  background: var(--button-bg-hover);
+}
+
+:root[data-density="compact"] .card {
+  padding: 12px;
+}
+
+:root[data-density="compact"] input,
+:root[data-density="compact"] textarea,
+:root[data-density="compact"] select,
+:root[data-density="compact"] button {
+  padding: 8px;
+  border-radius: 9px;
+}
+
+:root[data-density="compact"] #notes {
+  gap: 8px;
+}
+
+:root[data-density="compact"] .note {
+  padding: 8px;
+}
+
+:root[data-motion="reduced"] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+header {
+  max-width: 1180px;
+  margin: 16px auto;
+  padding: 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 12px 20px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 320px 1fr;
+}
+
+.grow {
+  min-height: 70vh;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+textarea {
+  min-height: 110px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#notes {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.note {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--input-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.note h4 {
+  margin: 0 0 6px;
+}
+
+.note-title-input {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.note-title-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--button-bg) 35%, transparent);
+}
+
+.note .meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.note-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.danger {
+  background: var(--danger-bg);
+}
+
+.danger:hover {
+  background: var(--danger-bg-hover);
+}
+
+.error {
+  color: #fca5a5;
+  min-height: 1em;
+}
+
+.pretty-link {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--button-bg) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--button-bg) 50%, var(--border));
+  color: var(--text);
+}
+
+.pretty-link:hover {
+  background: color-mix(in srgb, var(--button-bg) 24%, transparent);
+}
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Second Brain</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="auth-view" class="card auth">
+      <h1>My Second Brain</h1>
+      <p>PARA: Projects / Areas / Resources / Archives</p>
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password (min 6)" />
+      <div class="row">
+        <button id="register-btn">Register</button>
+        <button id="login-btn">Login</button>
+      </div>
+      <p id="auth-error" class="error"></p>
+    </div>
+
+    <div id="app-view" class="hidden">
+      <header>
+        <div>
+          <h2>My Second Brain</h2>
+          <small id="me"></small>
+        </div>
+        <div class="header-actions">
+          <select id="theme-mode" aria-label="Theme mode">
+            <option value="auto">Theme: Auto</option>
+            <option value="light">Theme: Light</option>
+            <option value="dark">Theme: Dark</option>
+          </select>
+          <button id="logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <main>
+        <aside class="card">
+          <h3>Create note</h3>
+          <input id="note-title" type="text" placeholder="Title" />
+          <select id="note-category">
+            <option value="projects">Projects</option>
+            <option value="areas">Areas</option>
+            <option value="resources" selected>Resources</option>
+            <option value="archives">Archives</option>
+          </select>
+          <textarea id="note-content" placeholder="Write your thought..."></textarea>
+          <button id="create-note-btn">Create</button>
+
+          <h3>Report issue</h3>
+          <textarea id="issue-text" placeholder="Describe the issue"></textarea>
+          <button id="send-issue-btn">Send to developer</button>
+
+          <h3>Customization</h3>
+          <input id="avatar-emoji" type="text" placeholder="Avatar emoji (e.g. 🚀)" maxlength="3" />
+          <input id="display-name" type="text" placeholder="Display name" />
+          <input id="app-title" type="text" placeholder="App title" />
+          <select id="accent-color" aria-label="Accent color">
+            <option value="blue">Accent: Blue</option>
+            <option value="purple">Accent: Purple</option>
+            <option value="green">Accent: Green</option>
+            <option value="orange">Accent: Orange</option>
+          </select>
+          <select id="font-family" aria-label="Font family">
+            <option value="sans">Font: Sans</option>
+            <option value="serif">Font: Serif</option>
+            <option value="mono">Font: Mono</option>
+          </select>
+          <select id="bg-pattern" aria-label="Background pattern">
+            <option value="none">Background: None</option>
+            <option value="dots">Background: Dots</option>
+            <option value="grid">Background: Grid</option>
+          </select>
+          <select id="density-mode" aria-label="Density mode">
+            <option value="cozy">Density: Cozy</option>
+            <option value="compact">Density: Compact</option>
+          </select>
+          <select id="motion-mode" aria-label="Motion mode">
+            <option value="smooth">Motion: Smooth</option>
+            <option value="reduced">Motion: Reduced</option>
+          </select>
+          <input id="profile-link" type="url" placeholder="Your link (https://...)" />
+          <a id="pretty-link" class="pretty-link hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
+          <h3>Share website</h3>
+          <input id="public-site-link" type="text" readonly placeholder="Run go-online.cmd to get link" />
+          <div class="row">
+            <button id="refresh-public-link-btn" type="button">Refresh link</button>
+            <button id="copy-public-link-btn" type="button">Copy link</button>
+          </div>
+          <div class="row">
+            <button id="export-settings-btn" type="button">Export settings</button>
+            <button id="import-settings-btn" type="button">Import settings</button>
+          </div>
+          <input id="import-settings-file" type="file" accept="application/json" class="hidden" />
+        </aside>
+
+        <section class="card grow">
+          <div class="toolbar">
+            <input id="search" type="text" placeholder="Search notes..." />
+            <small id="sync-status"></small>
+          </div>
+          <div id="notes"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>
+
