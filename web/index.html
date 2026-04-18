@@ -60,47 +60,51 @@
           </section>
 
           <section class="panel-block" data-mobile-panel="settings">
-            <h3 id="customization-heading">Customization</h3>
-            <input id="avatar-emoji" type="text" placeholder="Avatar emoji (e.g. 🚀)" maxlength="3" />
-            <input id="display-name" type="text" placeholder="Display name" />
-            <input id="app-title" type="text" placeholder="App title" />
-            <select id="accent-color" aria-label="Accent color">
-              <option value="blue">Accent: Blue</option>
-              <option value="purple">Accent: Purple</option>
-              <option value="green">Accent: Green</option>
-              <option value="orange">Accent: Orange</option>
-            </select>
-            <select id="font-family" aria-label="Font family">
-              <option value="sans">Font: Sans</option>
-              <option value="serif">Font: Serif</option>
-              <option value="mono">Font: Mono</option>
-            </select>
-            <select id="bg-pattern" aria-label="Background pattern">
-              <option value="none">Background: None</option>
-              <option value="dots">Background: Dots</option>
-              <option value="grid">Background: Grid</option>
-            </select>
-            <select id="density-mode" aria-label="Density mode">
-              <option value="cozy">Density: Cozy</option>
-              <option value="compact">Density: Compact</option>
-            </select>
-            <select id="motion-mode" aria-label="Motion mode">
-              <option value="smooth">Motion: Smooth</option>
-              <option value="reduced">Motion: Reduced</option>
-            </select>
-            <input id="profile-link" type="url" placeholder="Your link (https://...)" />
-            <a id="pretty-link" class="pretty-link hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
-            <h3 id="share-website-heading">Share website</h3>
-            <input id="public-site-link" type="text" readonly placeholder="Run go-online.cmd to get link" />
-            <div class="row">
-              <button id="refresh-public-link-btn" type="button">Refresh link</button>
-              <button id="copy-public-link-btn" type="button">Copy link</button>
-            </div>
-            <div class="row">
-              <button id="export-settings-btn" type="button">Export settings</button>
-              <button id="import-settings-btn" type="button">Import settings</button>
-            </div>
-            <input id="import-settings-file" type="file" accept="application/json" class="hidden" />
+            <details id="settings-drawer">
+              <summary id="customization-heading">Customization</summary>
+              <div class="settings-drawer-body">
+                <input id="avatar-emoji" type="text" placeholder="Avatar emoji (e.g. 🚀)" maxlength="3" />
+                <input id="display-name" type="text" placeholder="Display name" />
+                <input id="app-title" type="text" placeholder="App title" />
+                <select id="accent-color" aria-label="Accent color">
+                  <option value="blue">Accent: Blue</option>
+                  <option value="purple">Accent: Purple</option>
+                  <option value="green">Accent: Green</option>
+                  <option value="orange">Accent: Orange</option>
+                </select>
+                <select id="font-family" aria-label="Font family">
+                  <option value="sans">Font: Sans</option>
+                  <option value="serif">Font: Serif</option>
+                  <option value="mono">Font: Mono</option>
+                </select>
+                <select id="bg-pattern" aria-label="Background pattern">
+                  <option value="none">Background: None</option>
+                  <option value="dots">Background: Dots</option>
+                  <option value="grid">Background: Grid</option>
+                </select>
+                <select id="density-mode" aria-label="Density mode">
+                  <option value="cozy">Density: Cozy</option>
+                  <option value="compact">Density: Compact</option>
+                </select>
+                <select id="motion-mode" aria-label="Motion mode">
+                  <option value="smooth">Motion: Smooth</option>
+                  <option value="reduced">Motion: Reduced</option>
+                </select>
+                <input id="profile-link" type="url" placeholder="Your link (https://...)" />
+                <a id="pretty-link" class="pretty-link hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
+                <h3 id="share-website-heading">Share website</h3>
+                <input id="public-site-link" type="text" readonly placeholder="Run go-online.cmd to get link" />
+                <div class="row">
+                  <button id="refresh-public-link-btn" type="button">Refresh link</button>
+                  <button id="copy-public-link-btn" type="button">Copy link</button>
+                </div>
+                <div class="row">
+                  <button id="export-settings-btn" type="button">Export settings</button>
+                  <button id="import-settings-btn" type="button">Import settings</button>
+                </div>
+                <input id="import-settings-file" type="file" accept="application/json" class="hidden" />
+              </div>
+            </details>
           </section>
         </aside>
 

@@ -216,6 +216,39 @@ main > aside.card {
   border-top: 1px solid var(--border);
 }
 
+#settings-drawer {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 84%, transparent);
+  padding: 8px 10px;
+}
+
+#settings-drawer > summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+#settings-drawer > summary::-webkit-details-marker {
+  display: none;
+}
+
+#settings-drawer > summary::after {
+  content: "▾";
+  float: right;
+  color: var(--muted);
+}
+
+#settings-drawer:not([open]) > summary::after {
+  content: "▸";
+}
+
+.settings-drawer-body {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
 .grow {
   min-height: 70vh;
 }
@@ -241,6 +274,33 @@ textarea {
   margin-top: 10px;
   display: grid;
   gap: var(--gap);
+}
+
+.folder-group {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 76%, transparent);
+}
+
+.folder-details > summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text);
+}
+
+.folder-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.folder-notes {
+  display: grid;
+  gap: 8px;
+  padding: 0 8px 8px;
 }
 
 .note {
@@ -423,6 +483,20 @@ textarea {
 
   .mobile-nav {
     display: flex;
+  }
+
+  #settings-drawer {
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+
+  #settings-drawer > summary {
+    display: none;
+  }
+
+  .settings-drawer-body {
+    margin-top: 0;
   }
 }
 

@@ -43,6 +43,7 @@ const createNoteHeading = document.getElementById("create-note-heading");
 const reportIssueHeading = document.getElementById("report-issue-heading");
 const customizationHeading = document.getElementById("customization-heading");
 const shareWebsiteHeading = document.getElementById("share-website-heading");
+const settingsDrawer = document.getElementById("settings-drawer");
 const asidePanel = document.getElementById("aside-panel");
 const mobileNav = document.getElementById("mobile-nav");
 const mobileNavNotes = document.getElementById("mobile-nav-notes");
@@ -59,6 +60,9 @@ let eventsConnection = null;
 let publicLinkTimer = null;
 let currentLang = localStorage.getItem("lang") || "ru";
 let mobilePanel = "notes";
+let searchQuery = "";
+let renderSignature = "";
+let syncInFlight = false;
 
 const I18N = {
   ru: {
@@ -191,6 +195,14 @@ const I18N = {
 
 function t(key) {
   return I18N[currentLang]?.[key] || I18N.en[key] || key;
+}
+
+function debounce(fn, delayMs) {
+  let timer = null;
+  return (...args) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delayMs);
+  };
 }
 
 function getAvatarEmoji() {
@@ -337,9 +349,11 @@ function syncDesktopPanels() {
     notesPanel.classList.remove("hidden");
     mobileNav.classList.add("hidden");
     blocks.forEach((block) => block.classList.remove("hidden"));
+    if (settingsDrawer) settingsDrawer.open = false;
     return;
   }
   setMobilePanel(mobilePanel);
+  if (settingsDrawer) settingsDrawer.open = true;
 }
 
 function renderPrettyLink() {
@@ -583,33 +597,62 @@ function matchSearch(n, text) {
 }
 
 function renderNotes() {
-  const q = searchInput.value.trim();
+  const q = searchQuery.trim();
   const filtered = notes.filter((n) => !n.deletedAt).filter((n) => matchSearch(n, q));
+  const signature = JSON.stringify({
+    q,
+    lang: currentLang,
+    items: filtered.map((n) => [n.id, n.updatedAt, n.category])
+  });
+  if (signature === renderSignature) return;
+  renderSignature = signature;
+
   if (!filtered.length) {
     notesWrap.innerHTML = `<p>${escapeHtml(t("noNotes"))}</p>`;
     return;
   }
 
-  notesWrap.innerHTML = filtered
+  const groups = ["projects", "areas", "resources", "archives"].map((category) => ({
+    category,
+    notes: filtered.filter((n) => n.category === category)
+  }));
+
+  notesWrap.innerHTML = groups
+    .filter((g) => g.notes.length > 0)
     .map(
-      (n) => `
-      <article class="note" data-id="${n.id}">
-        <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
-        <div class="meta">${categoryLabel(n.category)} - ${formatDate(n.updatedAt)}</div>
-        <textarea data-role="content">${escapeHtml(n.content)}</textarea>
-        <div class="note-actions">
-          <select data-role="category">
-            ${["projects", "areas", "resources", "archives"]
+      (g) => `
+      <section class="folder-group">
+        <details class="folder-details" open>
+          <summary>${escapeHtml(categoryLabel(g.category))} <span class="folder-count">${g.notes.length}</span></summary>
+          <div class="folder-notes">
+            ${g.notes
               .map(
-                (c) =>
-                  `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(categoryLabel(c))}</option>`
+                (n) => `
+              <article class="note" data-id="${n.id}">
+                <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
+                <div class="meta">${categoryLabel(n.category)} - ${formatDate(n.updatedAt)}</div>
+                <textarea data-role="content">${escapeHtml(n.content)}</textarea>
+                <div class="note-actions">
+                  <select data-role="category">
+                    ${["projects", "areas", "resources", "archives"]
+                      .map(
+                        (c) =>
+                          `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(
+                            categoryLabel(c)
+                          )}</option>`
+                      )
+                      .join("")}
+                  </select>
+                  <button data-role="save">${escapeHtml(t("save"))}</button>
+                  <button class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
+                </div>
+              </article>
+            `
               )
               .join("")}
-          </select>
-          <button data-role="save">${escapeHtml(t("save"))}</button>
-          <button class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
-        </div>
-      </article>
+          </div>
+        </details>
+      </section>
     `
     )
     .join("");
@@ -628,30 +671,34 @@ async function refreshNotes() {
   const data = await api("/api/notes");
   notes = data.notes;
   lastSync = Date.now();
+  renderSignature = "";
   renderNotes();
 }
 
 async function sync() {
-  if (!token) return;
+  if (!token || syncInFlight || document.hidden) return;
+  syncInFlight = true;
   try {
-    syncStatus.textContent = t("syncing");
     const data = await api(`/api/sync?since=${lastSync}`);
     if (Array.isArray(data.notes) && data.notes.length) {
       const byId = new Map(notes.map((n) => [n.id, n]));
       data.notes.forEach((n) => byId.set(n.id, n));
       notes = Array.from(byId.values()).sort((a, b) => b.updatedAt - a.updatedAt);
+      renderSignature = "";
       renderNotes();
     }
     lastSync = data.serverTime || Date.now();
     syncStatus.textContent = `Synced ${new Date().toLocaleTimeString()}`;
   } catch (error) {
     syncStatus.textContent = t("syncError");
+  } finally {
+    syncInFlight = false;
   }
 }
 
 function startSyncLoop() {
   if (syncTimer) clearInterval(syncTimer);
-  syncTimer = setInterval(sync, 5000);
+  syncTimer = setInterval(sync, 9000);
 }
 
 function stopLiveEvents() {
@@ -680,11 +727,13 @@ function startLiveEvents() {
         const byId = new Map(notes.map((n) => [n.id, n]));
         byId.set(data.payload.id, data.payload);
         notes = Array.from(byId.values()).sort((a, b) => b.updatedAt - a.updatedAt);
+        renderSignature = "";
         renderNotes();
       }
 
       if (data.event === "note_deleted" && data.payload) {
         notes = notes.filter((n) => n.id !== data.payload.id);
+        renderSignature = "";
         renderNotes();
       }
 
@@ -737,6 +786,7 @@ async function createNote() {
       body: JSON.stringify(payload)
     });
     notes.unshift(data.note);
+    renderSignature = "";
     renderNotes();
     noteTitle.value = "";
     noteContent.value = "";
@@ -757,12 +807,14 @@ async function saveOne(id, title, content, category) {
     })
   });
   notes = notes.map((n) => (n.id === id ? data.note : n));
+  renderSignature = "";
   renderNotes();
 }
 
 async function removeOne(id) {
   await api(`/api/notes/${id}`, { method: "DELETE" });
   notes = notes.filter((n) => n.id !== id);
+  renderSignature = "";
   renderNotes();
 }
 
@@ -794,7 +846,14 @@ if (logoutBtn) {
   });
 }
 if (createNoteBtn) createNoteBtn.addEventListener("click", createNote);
-if (searchInput) searchInput.addEventListener("input", renderNotes);
+const onSearchInput = debounce(() => {
+  searchQuery = searchInput.value;
+  renderNotes();
+}, 180);
+if (searchInput) {
+  searchQuery = searchInput.value || "";
+  searchInput.addEventListener("input", onSearchInput);
+}
 if (issueBtn) issueBtn.addEventListener("click", sendIssue);
 if (avatarEmojiInput) {
   avatarEmojiInput.addEventListener("input", () => {
@@ -855,6 +914,7 @@ if (languageMode) {
   languageMode.addEventListener("change", () => {
     currentLang = languageMode.value;
     applyLanguage();
+    renderSignature = "";
     renderNotes();
   });
 }
@@ -916,11 +976,23 @@ async function boot() {
   applyLanguage();
   applyTheme(getThemeMode());
   applyCustomization();
+  if (settingsDrawer && window.matchMedia("(min-width: 901px)").matches) {
+    settingsDrawer.open = false;
+  }
   syncDesktopPanels();
   window.addEventListener("resize", syncDesktopPanels);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      loadPublicSiteLink();
+      sync();
+    }
+  });
   await loadPublicSiteLink();
   if (publicLinkTimer) clearInterval(publicLinkTimer);
-  publicLinkTimer = setInterval(loadPublicSiteLink, 12000);
+  publicLinkTimer = setInterval(() => {
+    if (document.hidden) return;
+    loadPublicSiteLink();
+  }, 30000);
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     if (getThemeMode() === "auto") {
       applyTheme("auto");
