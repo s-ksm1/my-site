@@ -46,6 +46,7 @@ const reportIssueHeading = document.getElementById("report-issue-heading");
 const customizationHeading = document.getElementById("customization-heading");
 const shareWebsiteHeading = document.getElementById("share-website-heading");
 const settingsDrawer = document.getElementById("settings-drawer");
+const createPanel = document.getElementById("create-panel");
 const asidePanel = document.getElementById("aside-panel");
 const mobileNav = document.getElementById("mobile-nav");
 const mobileNavNotes = document.getElementById("mobile-nav-notes");
@@ -989,6 +990,21 @@ if (importSettingsFile) {
     } finally {
       importSettingsFile.value = "";
     }
+  });
+}
+
+if (createPanel) {
+  createPanel.addEventListener("focusin", () => {
+    document.body.classList.add("create-focus-mode");
+  });
+  createPanel.addEventListener("focusout", () => {
+    setTimeout(() => {
+      const active = document.activeElement;
+      const stillInside = active && createPanel.contains(active);
+      if (!stillInside) {
+        document.body.classList.remove("create-focus-mode");
+      }
+    }, 0);
   });
 }
 

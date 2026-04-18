@@ -72,6 +72,17 @@ body {
   line-height: 1.4;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 20, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 8;
+}
+
 :root[data-pattern="dots"] body {
   background-image: radial-gradient(color-mix(in srgb, var(--text) 8%, transparent) 1px, transparent 1px);
   background-size: 18px 18px;
@@ -196,12 +207,33 @@ main > aside.card {
   max-height: calc(100vh - 24px);
   overflow: auto;
   scrollbar-width: thin;
+  z-index: 9;
 }
 
 .panel-block + .panel-block {
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--border);
+}
+
+#create-panel {
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  border-radius: 12px;
+}
+
+body.create-focus-mode::before {
+  opacity: 1;
+}
+
+body.create-focus-mode #create-panel {
+  transform: scale(1.02);
+  border-color: color-mix(in srgb, var(--button-bg) 55%, var(--border));
+  box-shadow:
+    0 10px 26px rgba(7, 12, 24, 0.28),
+    0 0 0 1px color-mix(in srgb, var(--button-bg) 40%, transparent);
+  background: color-mix(in srgb, var(--panel-strong) 88%, transparent);
+  z-index: 12;
 }
 
 #settings-drawer {
