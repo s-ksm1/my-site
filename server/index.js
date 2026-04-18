@@ -28,6 +28,10 @@ app.use((req, res, next) => {
   next();
 });
 
+if (process.env.NODE_ENV === "production" && JWT_SECRET === "change_this_secret") {
+  throw new Error("JWT_SECRET must be set in production");
+}
+
 function safeUser(user) {
   return {
     id: user.id,

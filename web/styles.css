@@ -258,6 +258,17 @@ textarea {
   flex-wrap: wrap;
 }
 
+#active-folder-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+#clear-folder-btn {
+  width: auto;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
 #notes {
   margin-top: 10px;
   display: grid;
@@ -272,6 +283,11 @@ textarea {
 .tree-group {
   border-left: 1px solid color-mix(in srgb, var(--muted) 40%, transparent);
   padding-left: 8px;
+}
+
+.folder-hint {
+  color: var(--muted);
+  margin: 2px 2px 10px;
 }
 
 .tree-node > summary {
@@ -404,6 +420,17 @@ textarea {
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--panel-strong) 90%, transparent);
   backdrop-filter: none;
+}
+
+.creator-signature,
+.app-footer {
+  color: var(--muted);
+  text-align: center;
+}
+
+.app-footer {
+  margin: 10px 0 6px;
+  font-size: 13px;
 }
 
 .mobile-nav button {

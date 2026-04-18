@@ -18,6 +18,8 @@ const noteContent = document.getElementById("note-content");
 const createNoteBtn = document.getElementById("create-note-btn");
 const notesWrap = document.getElementById("notes");
 const searchInput = document.getElementById("search");
+const activeFolderLabel = document.getElementById("active-folder-label");
+const clearFolderBtn = document.getElementById("clear-folder-btn");
 
 const issueText = document.getElementById("issue-text");
 const issueBtn = document.getElementById("send-issue-btn");
@@ -63,6 +65,7 @@ let mobilePanel = "notes";
 let searchQuery = "";
 let renderSignature = "";
 let syncInFlight = false;
+let activeFolder = "";
 
 const I18N = {
   ru: {
@@ -92,6 +95,8 @@ const I18N = {
     profileLinkPlaceholder: "Ваша ссылка (https://...)",
     publicLinkPlaceholder: "Запустите go-online.cmd для ссылки",
     noNotes: "Пока нет заметок.",
+    chooseFolder: "Выберите папку слева, чтобы открыть заметки.",
+    allFolders: "Все папки",
     save: "Сохранить",
     del: "Удалить",
     copied: "Публичная ссылка скопирована.",
@@ -134,6 +139,8 @@ const I18N = {
     profileLinkPlaceholder: "Your link (https://...)",
     publicLinkPlaceholder: "Run go-online.cmd to get link",
     noNotes: "No notes yet.",
+    chooseFolder: "Choose a folder to open notes.",
+    allFolders: "All folders",
     save: "Save",
     del: "Delete",
     copied: "Public link copied.",
@@ -176,6 +183,8 @@ const I18N = {
     profileLinkPlaceholder: "Sizning havolangiz (https://...)",
     publicLinkPlaceholder: "Havola uchun go-online.cmd ni ishga tushiring",
     noNotes: "Hozircha eslatmalar yo'q.",
+    chooseFolder: "Eslatmalarni ko'rish uchun papkani tanlang.",
+    allFolders: "Barcha papkalar",
     save: "Saqlash",
     del: "O'chirish",
     copied: "Public havola nusxalandi.",
@@ -295,6 +304,7 @@ function applyLanguage() {
   if (copyPublicLinkBtn) copyPublicLinkBtn.textContent = t("copyLink");
   if (exportSettingsBtn) exportSettingsBtn.textContent = t("exportSettings");
   if (importSettingsBtn) importSettingsBtn.textContent = t("importSettings");
+  if (clearFolderBtn) clearFolderBtn.textContent = t("allFolders");
   if (mobileNavNotes) mobileNavNotes.textContent = t("navNotes");
   if (mobileNavCreate) mobileNavCreate.textContent = t("navCreate");
   if (mobileNavSettings) mobileNavSettings.textContent = t("navSettings");
@@ -602,6 +612,7 @@ function renderNotes() {
   const signature = JSON.stringify({
     q,
     lang: currentLang,
+    activeFolder,
     items: filtered.map((n) => [n.id, n.updatedAt, n.category])
   });
   if (signature === renderSignature) return;
@@ -617,15 +628,25 @@ function renderNotes() {
     notes: filtered.filter((n) => n.category === category)
   }));
 
+  if (activeFolderLabel) {
+    activeFolderLabel.textContent = activeFolder ? categoryLabel(activeFolder) : "";
+  }
+  if (clearFolderBtn) {
+    clearFolderBtn.classList.toggle("hidden", !activeFolder);
+  }
+
   notesWrap.innerHTML = groups
     .filter((g) => g.notes.length > 0)
     .map(
       (g) => `
       <section class="tree-group">
-        <details class="tree-node" open>
-          <summary><span class="tree-caret">▾</span>${escapeHtml(categoryLabel(g.category))} <span class="folder-count">(${g.notes.length})</span></summary>
+        <details class="tree-node" ${activeFolder === g.category ? "open" : ""}>
+          <summary data-role="open-folder" data-folder="${g.category}">
+            <span class="tree-caret">▾</span>${escapeHtml(categoryLabel(g.category))}
+            <span class="folder-count">(${g.notes.length})</span>
+          </summary>
           <div class="tree-children">
-            ${g.notes
+            ${(activeFolder === g.category ? g.notes : [])
               .map(
                 (n) => `
               <div class="tree-item">
@@ -659,6 +680,13 @@ function renderNotes() {
     `
     )
     .join("");
+
+  if (!activeFolder && filtered.length > 0) {
+    notesWrap.insertAdjacentHTML(
+      "afterbegin",
+      `<p class="folder-hint">${escapeHtml(t("chooseFolder"))}</p>`
+    );
+  }
 }
 
 function escapeHtml(value) {
@@ -857,6 +885,13 @@ if (searchInput) {
   searchQuery = searchInput.value || "";
   searchInput.addEventListener("input", onSearchInput);
 }
+if (clearFolderBtn) {
+  clearFolderBtn.addEventListener("click", () => {
+    activeFolder = "";
+    renderSignature = "";
+    renderNotes();
+  });
+}
 if (issueBtn) issueBtn.addEventListener("click", sendIssue);
 if (avatarEmojiInput) {
   avatarEmojiInput.addEventListener("input", () => {
@@ -959,6 +994,14 @@ if (importSettingsFile) {
 
 notesWrap.addEventListener("click", async (event) => {
   const target = event.target;
+  const folderTrigger = target.closest('[data-role="open-folder"]');
+  if (folderTrigger && folderTrigger.dataset.folder) {
+    event.preventDefault();
+    activeFolder = activeFolder === folderTrigger.dataset.folder ? "" : folderTrigger.dataset.folder;
+    renderSignature = "";
+    renderNotes();
+    return;
+  }
   const article = target.closest(".note");
   if (!article) return;
   const id = article.dataset.id;
