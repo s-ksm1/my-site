@@ -4,6 +4,7 @@ const authError = document.getElementById("auth-error");
 const meLabel = document.getElementById("me");
 const syncStatus = document.getElementById("sync-status");
 const themeMode = document.getElementById("theme-mode");
+const languageMode = document.getElementById("language-mode");
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
@@ -36,6 +37,12 @@ const copyPublicLinkBtn = document.getElementById("copy-public-link-btn");
 const exportSettingsBtn = document.getElementById("export-settings-btn");
 const importSettingsBtn = document.getElementById("import-settings-btn");
 const importSettingsFile = document.getElementById("import-settings-file");
+const authTitle = document.getElementById("auth-title");
+const authSubtitle = document.getElementById("auth-subtitle");
+const createNoteHeading = document.getElementById("create-note-heading");
+const reportIssueHeading = document.getElementById("report-issue-heading");
+const customizationHeading = document.getElementById("customization-heading");
+const shareWebsiteHeading = document.getElementById("share-website-heading");
 
 let token = localStorage.getItem("token") || "";
 let user = JSON.parse(localStorage.getItem("user") || "null");
@@ -44,6 +51,131 @@ let syncTimer = null;
 let lastSync = 0;
 let eventsConnection = null;
 let publicLinkTimer = null;
+let currentLang = localStorage.getItem("lang") || "ru";
+
+const I18N = {
+  ru: {
+    authSubtitle: "PARA: Проекты / Области / Ресурсы / Архивы",
+    register: "Регистрация",
+    login: "Войти",
+    logout: "Выйти",
+    createNote: "Создать заметку",
+    reportIssue: "Сообщить о проблеме",
+    customization: "Кастомизация",
+    shareWebsite: "Поделиться сайтом",
+    create: "Создать",
+    sendIssue: "Отправить разработчику",
+    refreshLink: "Обновить ссылку",
+    copyLink: "Копировать ссылку",
+    exportSettings: "Экспорт настроек",
+    importSettings: "Импорт настроек",
+    searchPlaceholder: "Поиск заметок...",
+    noteTitlePlaceholder: "Заголовок",
+    noteContentPlaceholder: "Запишите мысль...",
+    issuePlaceholder: "Опишите проблему",
+    displayNamePlaceholder: "Отображаемое имя",
+    appTitlePlaceholder: "Название приложения",
+    profileLinkPlaceholder: "Ваша ссылка (https://...)",
+    publicLinkPlaceholder: "Запустите go-online.cmd для ссылки",
+    noNotes: "Пока нет заметок.",
+    save: "Сохранить",
+    del: "Удалить",
+    copied: "Публичная ссылка скопирована.",
+    noLink: "Сначала запустите go-online.cmd.",
+    imported: "Настройки импортированы.",
+    importError: "Не удалось импортировать JSON настроек.",
+    issueSent: "Отправлено.",
+    syncing: "Синхронизация...",
+    syncError: "Ошибка синхронизации",
+    liveConnected: "Live-синхронизация подключена",
+    liveReconnect: "Live-синхронизация переподключается...",
+    liveParseError: "Ошибка Live-синхронизации",
+    openLink: "🔗 Открыть ссылку",
+    category: { projects: "📁 Проекты", areas: "🎯 Области", resources: "📚 Ресурсы", archives: "🗄️ Архивы" }
+  },
+  en: {
+    authSubtitle: "PARA: Projects / Areas / Resources / Archives",
+    register: "Register",
+    login: "Login",
+    logout: "Logout",
+    createNote: "Create note",
+    reportIssue: "Report issue",
+    customization: "Customization",
+    shareWebsite: "Share website",
+    create: "Create",
+    sendIssue: "Send to developer",
+    refreshLink: "Refresh link",
+    copyLink: "Copy link",
+    exportSettings: "Export settings",
+    importSettings: "Import settings",
+    searchPlaceholder: "Search notes...",
+    noteTitlePlaceholder: "Title",
+    noteContentPlaceholder: "Write your thought...",
+    issuePlaceholder: "Describe the issue",
+    displayNamePlaceholder: "Display name",
+    appTitlePlaceholder: "App title",
+    profileLinkPlaceholder: "Your link (https://...)",
+    publicLinkPlaceholder: "Run go-online.cmd to get link",
+    noNotes: "No notes yet.",
+    save: "Save",
+    del: "Delete",
+    copied: "Public link copied.",
+    noLink: "No public link yet. Run go-online.cmd first.",
+    imported: "Settings imported.",
+    importError: "Could not import settings JSON.",
+    issueSent: "Issue sent.",
+    syncing: "Syncing...",
+    syncError: "Sync error",
+    liveConnected: "Live sync connected",
+    liveReconnect: "Live sync reconnecting...",
+    liveParseError: "Live sync parse error",
+    openLink: "🔗 Open link",
+    category: { projects: "📁 Projects", areas: "🎯 Areas", resources: "📚 Resources", archives: "🗄️ Archives" }
+  },
+  uz: {
+    authSubtitle: "PARA: Loyihalar / Sohalar / Resurslar / Arxivlar",
+    register: "Ro'yxatdan o'tish",
+    login: "Kirish",
+    logout: "Chiqish",
+    createNote: "Eslatma yaratish",
+    reportIssue: "Muammo haqida yuborish",
+    customization: "Moslash",
+    shareWebsite: "Sayt havolasini ulashish",
+    create: "Yaratish",
+    sendIssue: "Dasturchiga yuborish",
+    refreshLink: "Havolani yangilash",
+    copyLink: "Havolani nusxalash",
+    exportSettings: "Sozlamalarni eksport",
+    importSettings: "Sozlamalarni import",
+    searchPlaceholder: "Eslatmalarni qidirish...",
+    noteTitlePlaceholder: "Sarlavha",
+    noteContentPlaceholder: "Fikringizni yozing...",
+    issuePlaceholder: "Muammoni yozing",
+    displayNamePlaceholder: "Ko'rinadigan ism",
+    appTitlePlaceholder: "Ilova nomi",
+    profileLinkPlaceholder: "Sizning havolangiz (https://...)",
+    publicLinkPlaceholder: "Havola uchun go-online.cmd ni ishga tushiring",
+    noNotes: "Hozircha eslatmalar yo'q.",
+    save: "Saqlash",
+    del: "O'chirish",
+    copied: "Public havola nusxalandi.",
+    noLink: "Avval go-online.cmd ni ishga tushiring.",
+    imported: "Sozlamalar import qilindi.",
+    importError: "Sozlamalar JSON import bo'lmadi.",
+    issueSent: "Yuborildi.",
+    syncing: "Sinxronlash...",
+    syncError: "Sinxronlash xatosi",
+    liveConnected: "Live sinxronlash ulandi",
+    liveReconnect: "Live sinxronlash qayta ulanmoqda...",
+    liveParseError: "Live sinxronlash xatosi",
+    openLink: "🔗 Havolani ochish",
+    category: { projects: "📁 Loyihalar", areas: "🎯 Sohalar", resources: "📚 Resurslar", archives: "🗄️ Arxivlar" }
+  }
+};
+
+function t(key) {
+  return I18N[currentLang]?.[key] || I18N.en[key] || key;
+}
 
 function getAvatarEmoji() {
   return localStorage.getItem("avatar-emoji") || "";
@@ -83,6 +215,7 @@ function getMotionMode() {
 
 function getSettings() {
   return {
+    lang: currentLang,
     avatarEmoji: getAvatarEmoji(),
     displayName: getDisplayName(),
     appTitle: getAppTitle(),
@@ -96,12 +229,7 @@ function getSettings() {
 }
 
 function categoryLabel(value) {
-  const map = {
-    projects: "📁 Projects",
-    areas: "🎯 Areas",
-    resources: "📚 Resources",
-    archives: "🗄️ Archives"
-  };
+  const map = t("category");
   return map[value] || value;
 }
 
@@ -116,8 +244,41 @@ function formatPrettyLink(url) {
     const parsed = new URL(url);
     return `🔗 ${parsed.hostname.replace(/^www\./i, "")}`;
   } catch (error) {
-    return "🔗 Open link";
+    return t("openLink");
   }
+}
+
+function applyLanguage() {
+  localStorage.setItem("lang", currentLang);
+  if (languageMode) languageMode.value = currentLang;
+  authSubtitle.textContent = t("authSubtitle");
+  registerBtn.textContent = t("register");
+  loginBtn.textContent = t("login");
+  logoutBtn.textContent = t("logout");
+  createNoteHeading.textContent = t("createNote");
+  reportIssueHeading.textContent = t("reportIssue");
+  customizationHeading.textContent = t("customization");
+  shareWebsiteHeading.textContent = t("shareWebsite");
+  createNoteBtn.textContent = t("create");
+  issueBtn.textContent = t("sendIssue");
+  refreshPublicLinkBtn.textContent = t("refreshLink");
+  copyPublicLinkBtn.textContent = t("copyLink");
+  exportSettingsBtn.textContent = t("exportSettings");
+  importSettingsBtn.textContent = t("importSettings");
+  searchInput.placeholder = t("searchPlaceholder");
+  noteTitle.placeholder = t("noteTitlePlaceholder");
+  noteContent.placeholder = t("noteContentPlaceholder");
+  issueText.placeholder = t("issuePlaceholder");
+  displayNameInput.placeholder = t("displayNamePlaceholder");
+  appTitleInput.placeholder = t("appTitlePlaceholder");
+  profileLinkInput.placeholder = t("profileLinkPlaceholder");
+  if (!publicSiteLinkInput.value) {
+    publicSiteLinkInput.placeholder = t("publicLinkPlaceholder");
+  }
+  Array.from(noteCategory.options).forEach((opt) => {
+    opt.textContent = categoryLabel(opt.value);
+  });
+  renderPrettyLink();
 }
 
 function renderPrettyLink() {
@@ -250,6 +411,10 @@ function applyImportedSettings(next) {
   if (typeof settings.profileLink === "string") {
     localStorage.setItem("profile-link", settings.profileLink.trim());
   }
+  if (typeof settings.lang === "string" && I18N[settings.lang]) {
+    currentLang = settings.lang;
+  }
+  applyLanguage();
   applyCustomization();
   setView();
 }
@@ -263,29 +428,29 @@ async function loadPublicSiteLink() {
     const url = String(data.url || "").trim();
     if (!url) {
       publicSiteLinkInput.value = "";
-      publicSiteLinkInput.placeholder = "Run go-online.cmd to get link";
+      publicSiteLinkInput.placeholder = t("publicLinkPlaceholder");
       return;
     }
     publicSiteLinkInput.value = url;
   } catch (error) {
     publicSiteLinkInput.value = "";
-    publicSiteLinkInput.placeholder = "Public link unavailable";
+    publicSiteLinkInput.placeholder = t("publicLinkPlaceholder");
   }
 }
 
 async function copyPublicLink() {
   const value = publicSiteLinkInput.value.trim();
   if (!value) {
-    alert("No public link yet. Run go-online.cmd first.");
+    alert(t("noLink"));
     return;
   }
   try {
     await navigator.clipboard.writeText(value);
-    alert("Public link copied.");
+    alert(t("copied"));
   } catch (error) {
     publicSiteLinkInput.select();
     document.execCommand("copy");
-    alert("Public link copied.");
+    alert(t("copied"));
   }
 }
 
@@ -358,7 +523,7 @@ function renderNotes() {
   const q = searchInput.value.trim();
   const filtered = notes.filter((n) => !n.deletedAt).filter((n) => matchSearch(n, q));
   if (!filtered.length) {
-    notesWrap.innerHTML = "<p>No notes yet.</p>";
+    notesWrap.innerHTML = `<p>${escapeHtml(t("noNotes"))}</p>`;
     return;
   }
 
@@ -378,8 +543,8 @@ function renderNotes() {
               )
               .join("")}
           </select>
-          <button data-role="save">Save</button>
-          <button class="danger" data-role="delete">Delete</button>
+          <button data-role="save">${escapeHtml(t("save"))}</button>
+          <button class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
         </div>
       </article>
     `
@@ -406,7 +571,7 @@ async function refreshNotes() {
 async function sync() {
   if (!token) return;
   try {
-    syncStatus.textContent = "Syncing...";
+    syncStatus.textContent = t("syncing");
     const data = await api(`/api/sync?since=${lastSync}`);
     if (Array.isArray(data.notes) && data.notes.length) {
       const byId = new Map(notes.map((n) => [n.id, n]));
@@ -417,7 +582,7 @@ async function sync() {
     lastSync = data.serverTime || Date.now();
     syncStatus.textContent = `Synced ${new Date().toLocaleTimeString()}`;
   } catch (error) {
-    syncStatus.textContent = "Sync error";
+    syncStatus.textContent = t("syncError");
   }
 }
 
@@ -444,7 +609,7 @@ function startLiveEvents() {
     try {
       const data = JSON.parse(event.data || "{}");
       if (data.event === "connected") {
-        syncStatus.textContent = "Live sync connected";
+        syncStatus.textContent = t("liveConnected");
         return;
       }
 
@@ -465,12 +630,12 @@ function startLiveEvents() {
       }
       syncStatus.textContent = `Live synced ${new Date().toLocaleTimeString()}`;
     } catch (error) {
-      syncStatus.textContent = "Live sync parse error";
+      syncStatus.textContent = t("liveParseError");
     }
   };
 
   es.onerror = () => {
-    syncStatus.textContent = "Live sync reconnecting...";
+    syncStatus.textContent = t("liveReconnect");
     stopLiveEvents();
     setTimeout(startLiveEvents, 2000);
   };
@@ -547,7 +712,7 @@ async function sendIssue() {
       body: JSON.stringify({ message })
     });
     issueText.value = "";
-    alert("Issue sent.");
+    alert(t("issueSent"));
   } catch (error) {
     alert(error.message);
   }
@@ -604,6 +769,11 @@ motionModeInput.addEventListener("change", () => {
   localStorage.setItem("motion-mode", motionModeInput.value);
   applyMotionMode(motionModeInput.value);
 });
+languageMode.addEventListener("change", () => {
+  currentLang = languageMode.value;
+  applyLanguage();
+  renderNotes();
+});
 profileLinkInput.addEventListener("input", () => {
   localStorage.setItem("profile-link", profileLinkInput.value.trim());
   renderPrettyLink();
@@ -619,9 +789,9 @@ importSettingsFile.addEventListener("change", async () => {
     const text = await file.text();
     const parsed = JSON.parse(text);
     applyImportedSettings(parsed);
-    alert("Settings imported.");
+    alert(t("imported"));
   } catch (error) {
-    alert("Could not import settings JSON.");
+    alert(t("importError"));
   } finally {
     importSettingsFile.value = "";
   }
@@ -645,6 +815,8 @@ notesWrap.addEventListener("click", async (event) => {
 });
 
 async function boot() {
+  if (!I18N[currentLang]) currentLang = "ru";
+  applyLanguage();
   applyTheme(getThemeMode());
   applyCustomization();
   await loadPublicSiteLink();
