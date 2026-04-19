@@ -336,6 +336,41 @@ app.post("/api/feedback", auth, (req, res) => {
   return res.status(201).json({ ok: true });
 });
 
+app.post(
+  "/api/account/delete",
+  auth,
+  asyncHandler(async (req, res) => {
+    const password = String(req.body.password || "");
+    if (!password) {
+      return res.status(400).json({ error: "Password required for account deletion" });
+    }
+    const db = getData();
+    const user = db.users.find((u) => u.id === req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    db.notes = db.notes.filter((n) => n.userId !== user.id);
+    db.users = db.users.filter((u) => u.id !== user.id);
+    saveData(db);
+    const clients = liveClientsByUser.get(user.id);
+    if (clients) {
+      clients.forEach((clientRes) => {
+        try {
+          clientRes.end();
+        } catch (e) {
+          /* ignore */
+        }
+      });
+      liveClientsByUser.delete(user.id);
+    }
+    return res.json({ ok: true });
+  })
+);
+
 app.get("/api/public-link", (req, res) => {
   const link = getPublicLinkPayload();
   return res.json(link);

@@ -71,6 +71,31 @@ const mobileNavNotes = document.getElementById("mobile-nav-notes");
 const mobileNavCreate = document.getElementById("mobile-nav-create");
 const mobileNavSettings = document.getElementById("mobile-nav-settings");
 const notesPanel = document.querySelector("section.grow");
+const authSide = document.getElementById("auth-side");
+const headerAppTitleEl = document.getElementById("header-app-title");
+const metaDescriptionEl = document.getElementById("meta-description");
+const creatorSignatureEl = document.getElementById("creator-signature");
+const appFooterAuthorEl = document.getElementById("app-footer-author");
+const settingsSectionAccountTitle = document.getElementById("settings-section-account-title");
+const deleteAccountWarningEl = document.getElementById("delete-account-warning");
+const deleteAccountPassword = document.getElementById("delete-account-password");
+const deleteAccountBtn = document.getElementById("delete-account-btn");
+
+const API_ERROR_MAP = {
+  "No token": "apiErrorNoToken",
+  "Invalid token": "apiErrorInvalidToken",
+  "Wrong token type": "apiErrorWrongTokenType",
+  "Invalid email or password too short": "apiErrorInvalidEmailOrPassword",
+  "Email already exists": "apiErrorEmailExists",
+  "Invalid credentials": "apiErrorInvalidCredentials",
+  "Note not found": "apiErrorNoteNotFound",
+  "Empty message": "apiErrorEmptyMessage",
+  "Too many attempts, try later": "apiErrorRateLimit",
+  "Not found": "apiErrorNotFound",
+  "Server error": "apiErrorServer",
+  "Password required for account deletion": "apiErrorPasswordRequiredDeletion",
+  "User not found": "apiErrorUserNotFound"
+};
 
 let token = localStorage.getItem("token") || "";
 let user = JSON.parse(localStorage.getItem("user") || "null");
@@ -163,7 +188,62 @@ const I18N = {
     liveParseError: "Ошибка Live-синхронизации",
     openLink: "🔗 Открыть ссылку",
     category: { projects: "📁 Проекты", areas: "🎯 Области", resources: "📚 Ресурсы", archives: "🗄️ Архивы" },
-    categoryPlain: { projects: "Проекты", areas: "Области", resources: "Ресурсы", archives: "Архивы" }
+    categoryPlain: { projects: "Проекты", areas: "Области", resources: "Ресурсы", archives: "Архивы" },
+    settingsAccount: "Аккаунт",
+    deleteAccountWarning:
+      "Удаление необратимо: все заметки и данные профиля будут безвозвратно удалены с сервера. Введите пароль и подтвердите.",
+    deleteAccountPasswordPlaceholder: "Текущий пароль",
+    deleteAccountBtn: "Удалить аккаунт навсегда",
+    deleteAccountConfirm: "Удалить аккаунт и все заметки? Это нельзя отменить.",
+    toastAccountDeleted: "Аккаунт удалён",
+    creatorSignature: "Создатель: Сергей Курбанов",
+    footerAuthor: "Сергей Курбанов",
+    placeholderEmail: "Email",
+    placeholderPasswordAuth: "Пароль (мин. 6 символов)",
+    appearanceAuthAria: "Оформление экрана входа",
+    avatarPlaceholder: "Эмодзи аватара (например 🚀)",
+    metaDescription:
+      "PARA-блокнот в браузере: проекты, области, ресурсы, архивы, поиск и синхронизация между устройствами.",
+    defaultAppTitle: "My Second Brain",
+    syncedPrefix: "Синхронизировано",
+    liveSyncedPrefix: "Live",
+    accentBlue: "Акцент: синий",
+    accentPurple: "Акцент: фиолетовый",
+    accentGreen: "Акцент: зелёный",
+    accentOrange: "Акцент: оранжевый",
+    fontSans: "Шрифт: без засечек",
+    fontSerif: "Шрифт: с засечками",
+    fontMono: "Шрифт: моноширинный",
+    bgNone: "Фон: без узора",
+    bgDots: "Фон: точки",
+    bgGrid: "Фон: сетка",
+    densityCozy: "Плотность: просторно",
+    densityCompact: "Плотность: компактно",
+    motionSmooth: "Анимация: обычная",
+    motionReduced: "Анимация: уменьшенная",
+    accentAria: "Цвет акцента",
+    fontAria: "Шрифт",
+    bgAria: "Узор фона",
+    densityAria: "Плотность интерфейса",
+    motionAria: "Анимация",
+    sidebarAria: "Ширина боковой панели",
+    foldersAria: "Папки PARA",
+    apiErrorNoToken: "Нет токена авторизации",
+    apiErrorInvalidToken: "Недействительный токен",
+    apiErrorWrongTokenType: "Неверный тип токена",
+    apiErrorInvalidEmailOrPassword: "Некорректный email или слишком короткий пароль",
+    apiErrorEmailExists: "Этот email уже зарегистрирован",
+    apiErrorInvalidCredentials: "Неверный email или пароль",
+    apiErrorNoteNotFound: "Заметка не найдена",
+    apiErrorEmptyMessage: "Пустое сообщение",
+    apiErrorRateLimit: "Слишком много попыток, попробуйте позже",
+    apiErrorNotFound: "Не найдено",
+    apiErrorServer: "Ошибка сервера",
+    apiErrorPasswordRequiredDeletion: "Для удаления аккаунта укажите пароль",
+    apiErrorUserNotFound: "Пользователь не найден",
+    apiErrorGeneric: "Запрос не выполнен",
+    apiErrorEventsToken: "Не удалось подключить live-синхронизацию",
+    importSettingsFileInvalid: "Неверный файл настроек"
   },
   en: {
     authSubtitle: "PARA: Projects / Areas / Resources / Archives",
@@ -241,7 +321,62 @@ const I18N = {
     liveParseError: "Live sync parse error",
     openLink: "🔗 Open link",
     category: { projects: "📁 Projects", areas: "🎯 Areas", resources: "📚 Resources", archives: "🗄️ Archives" },
-    categoryPlain: { projects: "Projects", areas: "Areas", resources: "Resources", archives: "Archives" }
+    categoryPlain: { projects: "Projects", areas: "Areas", resources: "Resources", archives: "Archives" },
+    settingsAccount: "Account",
+    deleteAccountWarning:
+      "This cannot be undone. All notes and your profile will be permanently removed from the server. Enter your password to confirm.",
+    deleteAccountPasswordPlaceholder: "Current password",
+    deleteAccountBtn: "Delete account permanently",
+    deleteAccountConfirm: "Delete your account and all notes? This cannot be undone.",
+    toastAccountDeleted: "Account deleted",
+    creatorSignature: "Creator: Sergey Kurbanov",
+    footerAuthor: "Sergey Kurbanov",
+    placeholderEmail: "Email",
+    placeholderPasswordAuth: "Password (min 6 characters)",
+    appearanceAuthAria: "Sign-in appearance",
+    avatarPlaceholder: "Avatar emoji (e.g. 🚀)",
+    metaDescription:
+      "PARA notebook in the browser — projects, areas, resources, archives, sync, and search across devices.",
+    defaultAppTitle: "My Second Brain",
+    syncedPrefix: "Synced",
+    liveSyncedPrefix: "Live",
+    accentBlue: "Accent: Blue",
+    accentPurple: "Accent: Purple",
+    accentGreen: "Accent: Green",
+    accentOrange: "Accent: Orange",
+    fontSans: "Font: Sans",
+    fontSerif: "Font: Serif",
+    fontMono: "Font: Mono",
+    bgNone: "Background: None",
+    bgDots: "Background: Dots",
+    bgGrid: "Background: Grid",
+    densityCozy: "Density: Cozy",
+    densityCompact: "Density: Compact",
+    motionSmooth: "Motion: Smooth",
+    motionReduced: "Motion: Reduced",
+    accentAria: "Accent color",
+    fontAria: "Font family",
+    bgAria: "Background pattern",
+    densityAria: "Density",
+    motionAria: "Motion",
+    sidebarAria: "Sidebar width",
+    foldersAria: "PARA folders",
+    apiErrorNoToken: "No authorization token",
+    apiErrorInvalidToken: "Invalid token",
+    apiErrorWrongTokenType: "Wrong token type",
+    apiErrorInvalidEmailOrPassword: "Invalid email or password too short",
+    apiErrorEmailExists: "Email already registered",
+    apiErrorInvalidCredentials: "Invalid email or password",
+    apiErrorNoteNotFound: "Note not found",
+    apiErrorEmptyMessage: "Empty message",
+    apiErrorRateLimit: "Too many attempts, try again later",
+    apiErrorNotFound: "Not found",
+    apiErrorServer: "Server error",
+    apiErrorPasswordRequiredDeletion: "Password required to delete account",
+    apiErrorUserNotFound: "User not found",
+    apiErrorGeneric: "Request failed",
+    apiErrorEventsToken: "Could not connect live sync",
+    importSettingsFileInvalid: "Invalid settings file"
   },
   uz: {
     authSubtitle: "PARA: Loyihalar / Sohalar / Resurslar / Arxivlar",
@@ -319,12 +454,137 @@ const I18N = {
     liveParseError: "Live sinxronlash xatosi",
     openLink: "🔗 Havolani ochish",
     category: { projects: "📁 Loyihalar", areas: "🎯 Sohalar", resources: "📚 Resurslar", archives: "🗄️ Arxivlar" },
-    categoryPlain: { projects: "Loyihalar", areas: "Sohalar", resources: "Resurslar", archives: "Arxivlar" }
+    categoryPlain: { projects: "Loyihalar", areas: "Sohalar", resources: "Resurslar", archives: "Arxivlar" },
+    settingsAccount: "Hisob",
+    deleteAccountWarning:
+      "Bu qaytarib bo‘lmaydi: barcha eslatmalar va profil ma’lumotlari serverdan butunlay o‘chiriladi. Parolni kiriting va tasdiqlang.",
+    deleteAccountPasswordPlaceholder: "Joriy parol",
+    deleteAccountBtn: "Hisobni butunlay o‘chirish",
+    deleteAccountConfirm: "Hisob va barcha eslatmalarni o‘chirish? Bu bekor qilinmaydi.",
+    toastAccountDeleted: "Hisob o‘chirildi",
+    creatorSignature: "Muallif: Sergey Kurbanov",
+    footerAuthor: "Sergey Kurbanov",
+    placeholderEmail: "Email",
+    placeholderPasswordAuth: "Parol (kamida 6 belgi)",
+    appearanceAuthAria: "Kirish ekrani ko‘rinishi",
+    avatarPlaceholder: "Avatar emoji (masalan 🚀)",
+    metaDescription:
+      "Brauzerda PARA daftarchasi: loyihalar, sohalar, resurslar, arxivlar, qidiruv va qurilmalararo sinxron.",
+    defaultAppTitle: "My Second Brain",
+    syncedPrefix: "Sinxron",
+    liveSyncedPrefix: "Live",
+    accentBlue: "Aksent: ko‘k",
+    accentPurple: "Aksent: binafsha",
+    accentGreen: "Aksent: yashil",
+    accentOrange: "Aksent: to‘q sariq",
+    fontSans: "Shrift: sans",
+    fontSerif: "Shrift: serif",
+    fontMono: "Shrift: mono",
+    bgNone: "Fon: yo‘q",
+    bgDots: "Fon: nuqtalar",
+    bgGrid: "Fon: panjara",
+    densityCozy: "Zichlik: keng",
+    densityCompact: "Zichlik: ixcham",
+    motionSmooth: "Animatsiya: oddiy",
+    motionReduced: "Animatsiya: kamaytirilgan",
+    accentAria: "Aksent rangi",
+    fontAria: "Shrift oilasi",
+    bgAria: "Fon naqshi",
+    densityAria: "Interfeys zichligi",
+    motionAria: "Animatsiya",
+    sidebarAria: "Yon panel kengligi",
+    foldersAria: "PARA papkalari",
+    apiErrorNoToken: "Avtorizatsiya tokeni yo‘q",
+    apiErrorInvalidToken: "Token yaroqsiz",
+    apiErrorWrongTokenType: "Token turi noto‘g‘ri",
+    apiErrorInvalidEmailOrPassword: "Email noto‘g‘ri yoki parol juda qisqa",
+    apiErrorEmailExists: "Bu email allaqachon ro‘yxatdan o‘tgan",
+    apiErrorInvalidCredentials: "Email yoki parol noto‘g‘ri",
+    apiErrorNoteNotFound: "Eslatma topilmadi",
+    apiErrorEmptyMessage: "Xabar bo‘sh",
+    apiErrorRateLimit: "Juda ko‘p urinish, keyinroq qayting",
+    apiErrorNotFound: "Topilmadi",
+    apiErrorServer: "Server xatosi",
+    apiErrorPasswordRequiredDeletion: "Hisobni o‘chirish uchun parol kerak",
+    apiErrorUserNotFound: "Foydalanuvchi topilmadi",
+    apiErrorGeneric: "So‘rov bajarilmadi",
+    apiErrorEventsToken: "Live sinxronlashni ulab bo‘lmadi",
+    importSettingsFileInvalid: "Sozlamalar fayli noto‘g‘ri"
   }
 };
 
 function t(key) {
   return I18N[currentLang]?.[key] || I18N.en[key] || key;
+}
+
+function translateApiError(raw) {
+  const s = raw != null ? String(raw) : "";
+  const mapped = API_ERROR_MAP[s];
+  if (mapped) return t(mapped);
+  if (!s) return t("apiErrorGeneric");
+  return s;
+}
+
+function translateClientError(msg) {
+  const s = msg != null ? String(msg) : "";
+  if (s === "events-token") return t("apiErrorEventsToken");
+  if (s === "IMPORT_SETTINGS_INVALID") return t("importSettingsFileInvalid");
+  return s;
+}
+
+function formatLocaleTag() {
+  if (currentLang === "uz") return "uz-UZ";
+  if (currentLang === "ru") return "ru-RU";
+  return "en-US";
+}
+
+function updateAppearanceSelectLabels() {
+  const accentKeys = { blue: "accentBlue", purple: "accentPurple", green: "accentGreen", orange: "accentOrange" };
+  if (accentColorInput) {
+    accentColorInput.setAttribute("aria-label", t("accentAria"));
+    Object.entries(accentKeys).forEach(([val, key]) => {
+      const opt = accentColorInput.querySelector(`option[value="${val}"]`);
+      if (opt) opt.textContent = t(key);
+    });
+  }
+  const fontKeys = { sans: "fontSans", serif: "fontSerif", mono: "fontMono" };
+  if (fontFamilyInput) {
+    fontFamilyInput.setAttribute("aria-label", t("fontAria"));
+    Object.entries(fontKeys).forEach(([val, key]) => {
+      const opt = fontFamilyInput.querySelector(`option[value="${val}"]`);
+      if (opt) opt.textContent = t(key);
+    });
+  }
+  const bgKeys = { none: "bgNone", dots: "bgDots", grid: "bgGrid" };
+  if (bgPatternInput) {
+    bgPatternInput.setAttribute("aria-label", t("bgAria"));
+    Object.entries(bgKeys).forEach(([val, key]) => {
+      const opt = bgPatternInput.querySelector(`option[value="${val}"]`);
+      if (opt) opt.textContent = t(key);
+    });
+  }
+  const densityKeys = { cozy: "densityCozy", compact: "densityCompact" };
+  if (densityModeInput) {
+    densityModeInput.setAttribute("aria-label", t("densityAria"));
+    Object.entries(densityKeys).forEach(([val, key]) => {
+      const opt = densityModeInput.querySelector(`option[value="${val}"]`);
+      if (opt) opt.textContent = t(key);
+    });
+  }
+  const motionKeys = { smooth: "motionSmooth", reduced: "motionReduced" };
+  if (motionModeInput) {
+    motionModeInput.setAttribute("aria-label", t("motionAria"));
+    Object.entries(motionKeys).forEach(([val, key]) => {
+      const opt = motionModeInput.querySelector(`option[value="${val}"]`);
+      if (opt) opt.textContent = t(key);
+    });
+  }
+  if (sidebarWidthInput) {
+    sidebarWidthInput.setAttribute("aria-label", t("sidebarAria"));
+    const opts = sidebarWidthInput.options;
+    if (opts[0]) opts[0].textContent = t("sidebarOptComfort");
+    if (opts[1]) opts[1].textContent = t("sidebarOptNarrow");
+  }
 }
 
 function escapeHtml(value) {
@@ -504,7 +764,7 @@ function getDisplayName() {
 }
 
 function getAppTitle() {
-  return localStorage.getItem("app-title") || "My Second Brain";
+  return localStorage.getItem("app-title") || "";
 }
 
 function getAccentColor() {
@@ -600,11 +860,21 @@ function applyLanguage() {
   if (settingsSectionLinksTitle) settingsSectionLinksTitle.textContent = t("settingsLinks");
   if (settingsSectionDataTitle) settingsSectionDataTitle.textContent = t("settingsData");
   if (settingsSectionSupportTitle) settingsSectionSupportTitle.textContent = t("settingsSupport");
-  if (sidebarWidthInput) {
-    const opts = sidebarWidthInput.options;
-    if (opts[0]) opts[0].textContent = t("sidebarOptComfort");
-    if (opts[1]) opts[1].textContent = t("sidebarOptNarrow");
-  }
+  if (settingsSectionAccountTitle) settingsSectionAccountTitle.textContent = t("settingsAccount");
+  if (deleteAccountWarningEl) deleteAccountWarningEl.textContent = t("deleteAccountWarning");
+  if (deleteAccountBtn) deleteAccountBtn.textContent = t("deleteAccountBtn");
+  if (deleteAccountPassword) deleteAccountPassword.placeholder = t("deleteAccountPasswordPlaceholder");
+  if (metaDescriptionEl) metaDescriptionEl.setAttribute("content", t("metaDescription"));
+  if (authSide) authSide.setAttribute("aria-label", t("appearanceAuthAria"));
+  if (appThemeSeg) appThemeSeg.setAttribute("aria-label", t("themeLabel"));
+  if (appLangSeg) appLangSeg.setAttribute("aria-label", t("languageLabel"));
+  if (folderTreeEl) folderTreeEl.setAttribute("aria-label", t("foldersAria"));
+  if (emailInput) emailInput.placeholder = t("placeholderEmail");
+  if (passwordInput) passwordInput.placeholder = t("placeholderPasswordAuth");
+  if (creatorSignatureEl) creatorSignatureEl.textContent = t("creatorSignature");
+  if (appFooterAuthorEl) appFooterAuthorEl.textContent = t("footerAuthor");
+  if (authTitle) authTitle.textContent = t("defaultAppTitle");
+  if (avatarEmojiInput) avatarEmojiInput.placeholder = t("avatarPlaceholder");
   if (authSubtitle) authSubtitle.textContent = t("authSubtitle");
   const skipLink = document.getElementById("skip-to-content");
   if (skipLink) skipLink.textContent = t("skipToContent");
@@ -635,7 +905,7 @@ function applyLanguage() {
   if (displayNameInput) displayNameInput.placeholder = t("displayNamePlaceholder");
   if (appTitleInput) appTitleInput.placeholder = t("appTitlePlaceholder");
   if (profileLinkInput) profileLinkInput.placeholder = t("profileLinkPlaceholder");
-  if (publicSiteLinkInput && !publicSiteLinkInput.value) {
+  if (publicSiteLinkInput) {
     publicSiteLinkInput.placeholder = t("publicLinkPlaceholder");
   }
   if (noteCategory) {
@@ -643,8 +913,13 @@ function applyLanguage() {
       opt.textContent = categoryLabel(opt.value);
     });
   }
+  updateAppearanceSelectLabels();
   renderPrettyLink();
   refreshSegmentToggleLabels();
+  const offlineBanner = document.getElementById("offline-banner");
+  if (offlineBanner && !offlineBanner.classList.contains("hidden")) {
+    offlineBanner.textContent = t("toastOffline");
+  }
 }
 
 function setMobilePanel(nextPanel) {
@@ -752,10 +1027,12 @@ function applyMotionMode(mode) {
 }
 
 function applyAppTitle(title) {
-  const nextTitle = (title || "My Second Brain").trim() || "My Second Brain";
-  const heading = document.querySelector("header h2");
-  if (heading) {
-    heading.textContent = nextTitle;
+  const nextTitle = (title || "").trim() || t("defaultAppTitle");
+  if (headerAppTitleEl) {
+    headerAppTitleEl.textContent = nextTitle;
+  } else {
+    const heading = document.querySelector("header h2");
+    if (heading) heading.textContent = nextTitle;
   }
   document.title = nextTitle;
   if (appTitleInput) {
@@ -804,7 +1081,7 @@ function exportSettings() {
 function applyImportedSettings(next) {
   const settings = next && typeof next === "object" ? next.settings || next : null;
   if (!settings || typeof settings !== "object") {
-    throw new Error("Invalid settings file");
+    throw new Error("IMPORT_SETTINGS_INVALID");
   }
   if (typeof settings.displayName === "string") {
     localStorage.setItem("display-name", settings.displayName.trim());
@@ -919,7 +1196,8 @@ async function api(path, options = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error || "Request failed");
+    const raw = data.error != null ? String(data.error) : "";
+    throw new Error(translateApiError(raw));
   }
   return data;
 }
@@ -940,8 +1218,12 @@ function setView() {
   }
 }
 
+function formatTime(d = new Date()) {
+  return d.toLocaleTimeString(formatLocaleTag(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
 function formatDate(ms) {
-  return new Date(ms).toLocaleString();
+  return new Date(ms).toLocaleString(formatLocaleTag());
 }
 
 function matchSearch(n, text) {
@@ -1053,7 +1335,7 @@ async function sync() {
       renderNotes();
     }
     lastSync = data.serverTime || Date.now();
-    syncStatus.textContent = `Synced ${new Date().toLocaleTimeString()}`;
+    syncStatus.textContent = `${t("syncedPrefix")} ${formatTime()}`;
   } catch (error) {
     syncStatus.textContent = t("syncError");
   } finally {
@@ -1125,7 +1407,7 @@ async function startLiveEvents() {
       if (data.serverTime) {
         lastSync = data.serverTime;
       }
-      syncStatus.textContent = `Live synced ${new Date().toLocaleTimeString()}`;
+      syncStatus.textContent = `${t("liveSyncedPrefix")} ${formatTime()}`;
     } catch (error) {
       syncStatus.textContent = t("liveParseError");
     }
@@ -1160,7 +1442,7 @@ async function doAuth(mode) {
     startSyncLoop();
     startLiveEvents();
   } catch (error) {
-    authError.textContent = error.message;
+    authError.textContent = translateClientError(error.message);
   }
 }
 
@@ -1191,7 +1473,7 @@ async function createNote() {
       }
     });
   } catch (error) {
-    showToast(error.message, { variant: "error", duration: 5000 });
+    showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
   }
 }
 
@@ -1237,12 +1519,12 @@ async function deleteNoteWithUndo(id) {
           await restoreNote(id);
           showToast(t("toastRestored"), { variant: "success", duration: 3200 });
         } catch (error) {
-          showToast(error.message, { variant: "error", duration: 5000 });
+          showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
         }
       }
     });
   } catch (error) {
-    showToast(error.message, { variant: "error", duration: 5000 });
+    showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
   }
 }
 
@@ -1257,7 +1539,34 @@ async function sendIssue() {
     issueText.value = "";
     showToast(t("issueSent"), { variant: "success", duration: 4000 });
   } catch (error) {
-    showToast(error.message, { variant: "error", duration: 5000 });
+    showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
+  }
+}
+
+async function deleteAccount() {
+  const pwd = (deleteAccountPassword && deleteAccountPassword.value) || "";
+  if (!pwd.trim()) {
+    showToast(t("apiErrorPasswordRequiredDeletion"), { variant: "error", duration: 5000 });
+    return;
+  }
+  if (!window.confirm(t("deleteAccountConfirm"))) return;
+  try {
+    await api("/api/account/delete", {
+      method: "POST",
+      body: JSON.stringify({ password: pwd })
+    });
+    if (deleteAccountPassword) deleteAccountPassword.value = "";
+    clearAuth();
+    notes = [];
+    if (syncTimer) clearInterval(syncTimer);
+    syncTimer = null;
+    stopLiveEvents();
+    setView();
+    renderSignature = "";
+    renderNotes();
+    showToast(t("toastAccountDeleted"), { variant: "success", duration: 5000 });
+  } catch (error) {
+    showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
   }
 }
 
@@ -1273,6 +1582,7 @@ if (logoutBtn) {
     stopLiveEvents();
   });
 }
+if (deleteAccountBtn) deleteAccountBtn.addEventListener("click", deleteAccount);
 if (createNoteBtn) createNoteBtn.addEventListener("click", createNote);
 const onSearchInput = debounce(() => {
   searchQuery = searchInput.value;
@@ -1373,7 +1683,11 @@ if (importSettingsFile) {
       applyImportedSettings(parsed);
       showToast(t("imported"), { variant: "success", duration: 4000 });
     } catch (error) {
-      showToast(t("importError"), { variant: "error", duration: 5000 });
+      const msg =
+        error && error.message === "IMPORT_SETTINGS_INVALID"
+          ? t("importSettingsFileInvalid")
+          : t("importError");
+      showToast(msg, { variant: "error", duration: 5000 });
     } finally {
       importSettingsFile.value = "";
     }
@@ -1425,7 +1739,7 @@ notesWrap.addEventListener("click", async (event) => {
     try {
       await saveOne(id, title, content, category);
     } catch (error) {
-      showToast(error.message, { variant: "error", duration: 5000 });
+      showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
     }
   }
   if (target.dataset.role === "delete") {

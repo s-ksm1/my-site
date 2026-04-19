@@ -3,23 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="PARA notebook in the browser — projects, areas, resources, archives, sync, and search."
-    />
+    <meta id="meta-description" name="description" content="" />
     <meta name="theme-color" content="#ffffff" />
     <title>My Second Brain</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <a class="skip-link" id="skip-to-content" href="#main-content">Skip to content</a>
+    <a class="skip-link" id="skip-to-content" href="#main-content"></a>
     <div id="offline-banner" class="offline-banner hidden" role="status" aria-live="polite"></div>
     <div id="auth-view" class="card auth">
-      <aside class="auth-side" aria-label="Appearance">
+      <aside class="auth-side" id="auth-side" aria-label="">
         <div class="auth-toggles">
-          <div class="segment-label" id="auth-theme-label">Theme</div>
+          <div class="segment-label" id="auth-theme-label"></div>
           <div class="segment-toggle segment-toggle--theme" id="auth-theme-seg" data-setting="theme" role="group"></div>
-          <div class="segment-label" id="auth-lang-label">Language</div>
+          <div class="segment-label" id="auth-lang-label"></div>
           <div class="segment-toggle segment-toggle--lang" id="auth-lang-seg" data-setting="lang" role="group"></div>
         </div>
       </aside>
@@ -28,23 +25,23 @@
           <p class="auth-pitch__title" id="auth-pitch-title" role="heading" aria-level="2"></p>
           <p class="auth-pitch__body" id="auth-pitch-body"></p>
         </section>
-        <h1 id="auth-title">My Second Brain</h1>
-        <p id="auth-subtitle">PARA: Projects / Areas / Resources / Archives</p>
-        <input id="email" type="email" placeholder="Email" />
-        <input id="password" type="password" placeholder="Password (min 6)" />
+        <h1 id="auth-title"></h1>
+        <p id="auth-subtitle"></p>
+        <input id="email" type="email" placeholder="" />
+        <input id="password" type="password" placeholder="" />
         <div class="row">
-          <button id="register-btn">Register</button>
-          <button id="login-btn">Login</button>
+          <button id="register-btn" type="button"></button>
+          <button id="login-btn" type="button"></button>
         </div>
         <p id="auth-error" class="error"></p>
-        <small class="creator-signature">Создатель: Сергей Курбанов</small>
+        <small class="creator-signature" id="creator-signature"></small>
       </div>
     </div>
 
     <div id="app-view" class="hidden">
       <header>
         <div>
-          <h2>My Second Brain</h2>
+          <h2 id="header-app-title"></h2>
           <small id="me"></small>
         </div>
         <div class="header-actions">
@@ -53,80 +50,86 @@
             id="app-theme-seg"
             data-setting="theme"
             role="group"
-            aria-label="Theme"
+            aria-label=""
           ></div>
-          <div class="segment-toggle segment-toggle--lang" id="app-lang-seg" data-setting="lang" role="group" aria-label="Language"></div>
-          <button id="logout-btn">Logout</button>
+          <div
+            class="segment-toggle segment-toggle--lang"
+            id="app-lang-seg"
+            data-setting="lang"
+            role="group"
+            aria-label=""
+          ></div>
+          <button id="logout-btn" type="button"></button>
         </div>
       </header>
 
       <main id="main-content" tabindex="-1">
         <aside class="card sidebar-rail" id="aside-panel">
           <div class="sidebar-tree-wrap" id="sidebar-tree-section">
-            <div class="sidebar-tree-head" id="sidebar-folders-heading">Folders</div>
+            <div class="sidebar-tree-head" id="sidebar-folders-heading"></div>
             <p class="sidebar-tree-hint" id="sidebar-tree-hint"></p>
-            <nav class="folder-tree" id="folder-tree" aria-label="Folders"></nav>
+            <nav class="folder-tree" id="folder-tree" aria-label=""></nav>
           </div>
           <section class="panel-block sidebar-settings" data-mobile-panel="settings">
             <details id="settings-drawer">
-              <summary id="customization-heading">Settings</summary>
+              <summary id="customization-heading"></summary>
               <div class="settings-drawer-body">
                 <section class="settings-section" aria-labelledby="settings-section-profile-title">
                   <h4 class="settings-section-title" id="settings-section-profile-title"></h4>
-                  <input id="avatar-emoji" type="text" placeholder="Avatar emoji (e.g. 🚀)" maxlength="3" />
-                  <input id="display-name" type="text" placeholder="Display name" />
-                  <input id="app-title" type="text" placeholder="App title" />
+                  <input id="avatar-emoji" type="text" placeholder="" maxlength="3" />
+                  <input id="display-name" type="text" placeholder="" />
+                  <input id="app-title" type="text" placeholder="" />
                 </section>
 
                 <section class="settings-section" aria-labelledby="settings-section-appearance-title">
                   <h4 class="settings-section-title" id="settings-section-appearance-title"></h4>
-                  <select id="accent-color" aria-label="Accent color">
-                    <option value="blue">Accent: Blue</option>
-                    <option value="purple">Accent: Purple</option>
-                    <option value="green">Accent: Green</option>
-                    <option value="orange">Accent: Orange</option>
+                  <select id="accent-color" aria-label="">
+                    <option value="blue"></option>
+                    <option value="purple"></option>
+                    <option value="green"></option>
+                    <option value="orange"></option>
                   </select>
-                  <select id="font-family" aria-label="Font family">
-                    <option value="sans">Font: Sans</option>
-                    <option value="serif">Font: Serif</option>
-                    <option value="mono">Font: Mono</option>
+                  <select id="font-family" aria-label="">
+                    <option value="sans"></option>
+                    <option value="serif"></option>
+                    <option value="mono"></option>
                   </select>
-                  <select id="bg-pattern" aria-label="Background pattern">
-                    <option value="none">Background: None</option>
-                    <option value="dots">Background: Dots</option>
-                    <option value="grid">Background: Grid</option>
+                  <select id="bg-pattern" aria-label="">
+                    <option value="none"></option>
+                    <option value="dots"></option>
+                    <option value="grid"></option>
                   </select>
-                  <select id="density-mode" aria-label="Density mode">
-                    <option value="cozy">Density: Cozy</option>
-                    <option value="compact">Density: Compact</option>
+                  <select id="density-mode" aria-label="">
+                    <option value="cozy"></option>
+                    <option value="compact"></option>
                   </select>
-                  <select id="motion-mode" aria-label="Motion mode">
-                    <option value="smooth">Motion: Smooth</option>
-                    <option value="reduced">Motion: Reduced</option>
+                  <select id="motion-mode" aria-label="">
+                    <option value="smooth"></option>
+                    <option value="reduced"></option>
                   </select>
-                  <select id="sidebar-width" aria-label="Sidebar width">
-                    <option value="comfortable">Sidebar: Comfortable</option>
-                    <option value="narrow">Sidebar: Compact</option>
+                  <select id="sidebar-width" aria-label="">
+                    <option value="comfortable"></option>
+                    <option value="narrow"></option>
                   </select>
                 </section>
 
                 <section class="settings-section" aria-labelledby="settings-section-links-title">
                   <h4 class="settings-section-title" id="settings-section-links-title"></h4>
-                  <input id="profile-link" type="url" placeholder="Your link (https://...)" />
+                  <input id="profile-link" type="url" placeholder="" />
                   <a id="pretty-link" class="pretty-link hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
                 </section>
 
                 <section class="settings-section" aria-labelledby="settings-section-data-title">
                   <h4 class="settings-section-title" id="settings-section-data-title"></h4>
                   <p class="settings-subheading" id="share-website-heading"></p>
-                  <input id="public-site-link" type="text" readonly placeholder="Run go-online.cmd to get link" />
+                  <input id="public-site-link" type="text" readonly placeholder="" />
                   <div class="row">
-                    <button id="refresh-public-link-btn" type="button">Refresh link</button>
-                    <button id="copy-public-link-btn" type="button">Copy link</button>
+                    <button id="refresh-public-link-btn" type="button"></button>
+                    <button id="copy-public-link-btn" type="button"></button>
                   </div>
                   <div class="row">
-                    <button id="export-settings-btn" type="button">Export settings</button>
-                    <button id="import-settings-btn" type="button">Import settings</button>
+                    <button id="export-settings-btn" type="button"></button>
+                    <button id="import-settings-btn" type="button"></button>
                   </div>
                   <input id="import-settings-file" type="file" accept="application/json" class="hidden" />
                 </section>
@@ -134,8 +137,20 @@
                 <section class="settings-section" aria-labelledby="settings-section-support-title">
                   <h4 class="settings-section-title" id="settings-section-support-title"></h4>
                   <p class="settings-subheading" id="report-issue-heading"></p>
-                  <textarea id="issue-text" placeholder="Describe the issue"></textarea>
-                  <button id="send-issue-btn">Send to developer</button>
+                  <textarea id="issue-text" placeholder=""></textarea>
+                  <button id="send-issue-btn" type="button"></button>
+                </section>
+
+                <section class="settings-section" aria-labelledby="settings-section-account-title">
+                  <h4 class="settings-section-title" id="settings-section-account-title"></h4>
+                  <p class="settings-subheading settings-danger-hint" id="delete-account-warning"></p>
+                  <input
+                    id="delete-account-password"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder=""
+                  />
+                  <button type="button" class="danger" id="delete-account-btn"></button>
                 </section>
               </div>
             </details>
@@ -144,23 +159,23 @@
 
         <section class="card grow">
           <div class="toolbar" id="notes-toolbar">
-            <input id="search" type="text" placeholder="Search notes..." />
+            <input id="search" type="text" placeholder="" />
             <small id="active-folder-label"></small>
-            <button id="clear-folder-btn" type="button" class="hidden">All folders</button>
+            <button id="clear-folder-btn" type="button" class="hidden"></button>
             <small id="sync-status" aria-live="polite"></small>
           </div>
           <div class="main-column">
             <section class="create-column panel-block" data-mobile-panel="create" id="create-panel">
-              <h3 id="create-note-heading">Create note</h3>
-              <input id="note-title" type="text" placeholder="Title" />
+              <h3 id="create-note-heading"></h3>
+              <input id="note-title" type="text" placeholder="" />
               <select id="note-category">
-                <option value="projects">Projects</option>
-                <option value="areas">Areas</option>
-                <option value="resources" selected>Resources</option>
-                <option value="archives">Archives</option>
+                <option value="projects"></option>
+                <option value="areas"></option>
+                <option value="resources" selected></option>
+                <option value="archives"></option>
               </select>
-              <textarea id="note-content" placeholder="Write your thought..."></textarea>
-              <button id="create-note-btn">Create</button>
+              <textarea id="note-content" placeholder=""></textarea>
+              <button id="create-note-btn" type="button"></button>
             </section>
             <div class="notes-main" id="notes-main" data-mobile-panel="notes">
               <div class="notes-column">
@@ -171,11 +186,11 @@
         </section>
       </main>
       <nav class="mobile-nav hidden" id="mobile-nav">
-        <button type="button" data-mobile-target="notes" class="active" id="mobile-nav-notes">Notes</button>
-        <button type="button" data-mobile-target="create" id="mobile-nav-create">Create</button>
-        <button type="button" data-mobile-target="settings" id="mobile-nav-settings">Settings</button>
+        <button type="button" data-mobile-target="notes" class="active" id="mobile-nav-notes"></button>
+        <button type="button" data-mobile-target="create" id="mobile-nav-create"></button>
+        <button type="button" data-mobile-target="settings" id="mobile-nav-settings"></button>
       </nav>
-      <footer class="app-footer">Сергей Курбанов</footer>
+      <footer class="app-footer" id="app-footer-author"></footer>
     </div>
 
     <div id="toast-host" class="toast-host" aria-live="polite" aria-atomic="true"></div>
