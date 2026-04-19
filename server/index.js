@@ -41,9 +41,10 @@ app.use((req, res, next) => {
     [
       "default-src 'self'",
       "script-src 'self'",
-      "style-src 'self'",
+      "style-src 'self' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data:",
-      "connect-src 'self'",
+      "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'"
@@ -413,5 +414,17 @@ app.use((err, req, res, next) => {
 app.listen(PORT, HOST, () => {
   // eslint-disable-next-line no-console
   console.log(`Server running at http://${HOST}:${PORT}`);
+  const isPublicDeploy =
+    process.env.NODE_ENV === "production" ||
+    process.env.RENDER === "true" ||
+    process.env.FORCE_DEPLOY_CHECKS === "true";
+  if (isPublicDeploy && (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change_this_secret")) {
+    // eslint-disable-next-line no-console
+    console.warn("[server] Set a strong JWT_SECRET in the environment before public deployment.");
+  }
+  if (isPublicDeploy && !process.env.SMTP_HOST) {
+    // eslint-disable-next-line no-console
+    console.warn("[server] SMTP not configured — feedback stays in issues.json only. Copy env.example to .env and set SMTP_*.");
+  }
 });
 
