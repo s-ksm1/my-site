@@ -2204,3 +2204,40 @@ function startTutorialIfNeeded() {
   overlay.classList.remove("hidden");
   showStep(0);
 }
+
+// --- Expanding Create Bar Logic ---
+const noteCreatorWrap = document.getElementById("note-creator-wrap");
+const noteCreatorExpanded = document.getElementById("note-creator-expanded");
+
+if (noteCreatorWrap && noteCreatorExpanded && noteCreateTitle && noteCreateBody) {
+  function collapseCreateBar() {
+    if (!noteCreateTitle.value.trim() && !noteCreateBody.value.trim()) {
+      noteCreatorExpanded.classList.add("hidden");
+      noteCreatorWrap.classList.remove("expanded");
+    }
+  }
+
+  function expandCreateBar() {
+    noteCreatorExpanded.classList.remove("hidden");
+    noteCreatorWrap.classList.add("expanded");
+  }
+
+  noteCreateTitle.addEventListener("focus", expandCreateBar);
+  noteCreateTitle.addEventListener("click", expandCreateBar);
+  noteCreateBody.addEventListener("focus", expandCreateBar);
+
+  document.addEventListener("click", (e) => {
+    if (!noteCreatorWrap.contains(e.target)) {
+      collapseCreateBar();
+    }
+  });
+
+  // Check inputs on create note click and potentially collapse
+  if (createNoteBtn) {
+    createNoteBtn.addEventListener("click", () => {
+      setTimeout(() => {
+        collapseCreateBar();
+      }, 50);
+    });
+  }
+}
