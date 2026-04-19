@@ -37,6 +37,7 @@ const fontFamilyInput = document.getElementById("font-family");
 const bgPatternInput = document.getElementById("bg-pattern");
 const densityModeInput = document.getElementById("density-mode");
 const motionModeInput = document.getElementById("motion-mode");
+const sidebarWidthInput = document.getElementById("sidebar-width");
 const profileLinkInput = document.getElementById("profile-link");
 const prettyLink = document.getElementById("pretty-link");
 const publicSiteLinkInput = document.getElementById("public-site-link");
@@ -51,11 +52,20 @@ const createNoteHeading = document.getElementById("create-note-heading");
 const reportIssueHeading = document.getElementById("report-issue-heading");
 const customizationHeading = document.getElementById("customization-heading");
 const shareWebsiteHeading = document.getElementById("share-website-heading");
+const sidebarTreeHint = document.getElementById("sidebar-tree-hint");
+const settingsSectionProfileTitle = document.getElementById("settings-section-profile-title");
+const settingsSectionAppearanceTitle = document.getElementById("settings-section-appearance-title");
+const settingsSectionLinksTitle = document.getElementById("settings-section-links-title");
+const settingsSectionDataTitle = document.getElementById("settings-section-data-title");
+const settingsSectionSupportTitle = document.getElementById("settings-section-support-title");
 const settingsDrawer = document.getElementById("settings-drawer");
 const createPanel = document.getElementById("create-panel");
 const notesToolbar = document.getElementById("notes-toolbar");
 const notesMain = document.getElementById("notes-main");
 const asidePanel = document.getElementById("aside-panel");
+const folderTreeEl = document.getElementById("folder-tree");
+const sidebarTreeSection = document.getElementById("sidebar-tree-section");
+const sidebarFoldersHeading = document.getElementById("sidebar-folders-heading");
 const mobileNav = document.getElementById("mobile-nav");
 const mobileNavNotes = document.getElementById("mobile-nav-notes");
 const mobileNavCreate = document.getElementById("mobile-nav-create");
@@ -84,8 +94,16 @@ const I18N = {
     logout: "Выйти",
     createNote: "Создать заметку",
     reportIssue: "Сообщить о проблеме",
-    customization: "Кастомизация",
-    shareWebsite: "Поделиться сайтом",
+    customization: "Настройки",
+    settingsProfile: "Профиль",
+    settingsAppearance: "Оформление",
+    settingsLinks: "Ссылки",
+    settingsData: "Данные и резерв",
+    settingsSupport: "Обратная связь",
+    sidebarTreeHint: "PARA · нажмите папку, чтобы открыть заметки",
+    sidebarOptComfort: "Боковая панель: шире",
+    sidebarOptNarrow: "Боковая панель: компактнее",
+    shareWebsite: "Публичная ссылка",
     navNotes: "Заметки",
     navCreate: "Создать",
     navSettings: "Настройки",
@@ -118,7 +136,9 @@ const I18N = {
     profileLinkPlaceholder: "Ваша ссылка (https://...)",
     publicLinkPlaceholder: "Запустите go-online.cmd для ссылки",
     noNotes: "Пока нет заметок.",
-    chooseFolder: "Выберите папку слева, чтобы открыть заметки.",
+    chooseFolder: "Выберите папку в боковой панели слева.",
+    emptyFolder: "В этой папке нет заметок.",
+    sidebarFolders: "Папки",
     allFolders: "Все папки",
     save: "Сохранить",
     del: "Удалить",
@@ -133,7 +153,8 @@ const I18N = {
     liveReconnect: "Live-синхронизация переподключается...",
     liveParseError: "Ошибка Live-синхронизации",
     openLink: "🔗 Открыть ссылку",
-    category: { projects: "📁 Проекты", areas: "🎯 Области", resources: "📚 Ресурсы", archives: "🗄️ Архивы" }
+    category: { projects: "📁 Проекты", areas: "🎯 Области", resources: "📚 Ресурсы", archives: "🗄️ Архивы" },
+    categoryPlain: { projects: "Проекты", areas: "Области", resources: "Ресурсы", archives: "Архивы" }
   },
   en: {
     authSubtitle: "PARA: Projects / Areas / Resources / Archives",
@@ -142,8 +163,16 @@ const I18N = {
     logout: "Logout",
     createNote: "Create note",
     reportIssue: "Report issue",
-    customization: "Customization",
-    shareWebsite: "Share website",
+    customization: "Settings",
+    settingsProfile: "Profile",
+    settingsAppearance: "Appearance",
+    settingsLinks: "Links",
+    settingsData: "Data & backup",
+    settingsSupport: "Feedback",
+    sidebarTreeHint: "PARA · click a folder to open notes",
+    sidebarOptComfort: "Sidebar: comfortable",
+    sidebarOptNarrow: "Sidebar: compact",
+    shareWebsite: "Public link",
     navNotes: "Notes",
     navCreate: "Create",
     navSettings: "Settings",
@@ -176,7 +205,9 @@ const I18N = {
     profileLinkPlaceholder: "Your link (https://...)",
     publicLinkPlaceholder: "Run go-online.cmd to get link",
     noNotes: "No notes yet.",
-    chooseFolder: "Choose a folder to open notes.",
+    chooseFolder: "Pick a folder in the left sidebar.",
+    emptyFolder: "No notes in this folder.",
+    sidebarFolders: "Folders",
     allFolders: "All folders",
     save: "Save",
     del: "Delete",
@@ -191,7 +222,8 @@ const I18N = {
     liveReconnect: "Live sync reconnecting...",
     liveParseError: "Live sync parse error",
     openLink: "🔗 Open link",
-    category: { projects: "📁 Projects", areas: "🎯 Areas", resources: "📚 Resources", archives: "🗄️ Archives" }
+    category: { projects: "📁 Projects", areas: "🎯 Areas", resources: "📚 Resources", archives: "🗄️ Archives" },
+    categoryPlain: { projects: "Projects", areas: "Areas", resources: "Resources", archives: "Archives" }
   },
   uz: {
     authSubtitle: "PARA: Loyihalar / Sohalar / Resurslar / Arxivlar",
@@ -200,8 +232,16 @@ const I18N = {
     logout: "Chiqish",
     createNote: "Eslatma yaratish",
     reportIssue: "Muammo haqida yuborish",
-    customization: "Moslash",
-    shareWebsite: "Sayt havolasini ulashish",
+    customization: "Sozlamalar",
+    settingsProfile: "Profil",
+    settingsAppearance: "Ko‘rinish",
+    settingsLinks: "Havolalar",
+    settingsData: "Ma’lumot va nusxa",
+    settingsSupport: "Fikr-mulohaza",
+    sidebarTreeHint: "PARA · eslatmalar uchun papkani bosing",
+    sidebarOptComfort: "Yon panel: keng",
+    sidebarOptNarrow: "Yon panel: ixcham",
+    shareWebsite: "Ommaviy havola",
     navNotes: "Eslatmalar",
     navCreate: "Yaratish",
     navSettings: "Sozlamalar",
@@ -234,7 +274,9 @@ const I18N = {
     profileLinkPlaceholder: "Sizning havolangiz (https://...)",
     publicLinkPlaceholder: "Havola uchun go-online.cmd ni ishga tushiring",
     noNotes: "Hozircha eslatmalar yo'q.",
-    chooseFolder: "Eslatmalarni ko'rish uchun papkani tanlang.",
+    chooseFolder: "Chap paneldan papkani tanlang.",
+    emptyFolder: "Bu papkada eslatma yo'q.",
+    sidebarFolders: "Papkalar",
     allFolders: "Barcha papkalar",
     save: "Saqlash",
     del: "O'chirish",
@@ -249,7 +291,8 @@ const I18N = {
     liveReconnect: "Live sinxronlash qayta ulanmoqda...",
     liveParseError: "Live sinxronlash xatosi",
     openLink: "🔗 Havolani ochish",
-    category: { projects: "📁 Loyihalar", areas: "🎯 Sohalar", resources: "📚 Resurslar", archives: "🗄️ Arxivlar" }
+    category: { projects: "📁 Loyihalar", areas: "🎯 Sohalar", resources: "📚 Resurslar", archives: "🗄️ Arxivlar" },
+    categoryPlain: { projects: "Loyihalar", areas: "Sohalar", resources: "Resurslar", archives: "Arxivlar" }
   }
 };
 
@@ -411,6 +454,18 @@ function getMotionMode() {
   return localStorage.getItem("motion-mode") || "smooth";
 }
 
+function getSidebarWidth() {
+  return localStorage.getItem("sidebar-width") || "comfortable";
+}
+
+function applySidebarWidth(mode) {
+  const next = mode === "narrow" ? "narrow" : "comfortable";
+  document.documentElement.setAttribute("data-sidebar-width", next);
+  if (sidebarWidthInput) {
+    sidebarWidthInput.value = next;
+  }
+}
+
 function getSettings() {
   return {
     lang: currentLang,
@@ -422,6 +477,7 @@ function getSettings() {
     bgPattern: getBgPattern(),
     densityMode: getDensityMode(),
     motionMode: getMotionMode(),
+    sidebarWidth: getSidebarWidth(),
     profileLink: getProfileLink()
   };
 }
@@ -429,6 +485,12 @@ function getSettings() {
 function categoryLabel(value) {
   const map = t("category");
   return map[value] || value;
+}
+
+function categorySidebarLabel(value) {
+  const pack = I18N[currentLang]?.categoryPlain;
+  if (pack && pack[value]) return pack[value];
+  return categoryLabel(value);
 }
 
 function normalizeLink(value) {
@@ -454,6 +516,18 @@ function applyLanguage() {
   if (authLangLabel) authLangLabel.textContent = t("languageLabel");
   if (authPitchTitle) authPitchTitle.textContent = t("authPitchTitle");
   if (authPitchBody) authPitchBody.textContent = t("authPitchBody");
+  if (sidebarFoldersHeading) sidebarFoldersHeading.textContent = t("sidebarFolders");
+  if (sidebarTreeHint) sidebarTreeHint.textContent = t("sidebarTreeHint");
+  if (settingsSectionProfileTitle) settingsSectionProfileTitle.textContent = t("settingsProfile");
+  if (settingsSectionAppearanceTitle) settingsSectionAppearanceTitle.textContent = t("settingsAppearance");
+  if (settingsSectionLinksTitle) settingsSectionLinksTitle.textContent = t("settingsLinks");
+  if (settingsSectionDataTitle) settingsSectionDataTitle.textContent = t("settingsData");
+  if (settingsSectionSupportTitle) settingsSectionSupportTitle.textContent = t("settingsSupport");
+  if (sidebarWidthInput) {
+    const opts = sidebarWidthInput.options;
+    if (opts[0]) opts[0].textContent = t("sidebarOptComfort");
+    if (opts[1]) opts[1].textContent = t("sidebarOptNarrow");
+  }
   if (authSubtitle) authSubtitle.textContent = t("authSubtitle");
   if (registerBtn) registerBtn.textContent = t("register");
   if (loginBtn) loginBtn.textContent = t("login");
@@ -500,22 +574,24 @@ function setMobilePanel(nextPanel) {
   const settingsBlock = asidePanel.querySelector('[data-mobile-panel="settings"]');
 
   if (nextPanel === "settings") {
+    if (sidebarTreeSection) sidebarTreeSection.classList.add("hidden");
     if (settingsBlock) settingsBlock.classList.remove("hidden");
     asidePanel.classList.remove("hidden");
     notesPanel.classList.add("hidden");
-  } else {
+  } else if (nextPanel === "create") {
     asidePanel.classList.add("hidden");
     notesPanel.classList.remove("hidden");
-
-    if (nextPanel === "create") {
-      if (createPanel) createPanel.classList.remove("hidden");
-      if (notesToolbar) notesToolbar.classList.add("hidden");
-      if (notesMain) notesMain.classList.add("hidden");
-    } else {
-      if (createPanel) createPanel.classList.add("hidden");
-      if (notesToolbar) notesToolbar.classList.remove("hidden");
-      if (notesMain) notesMain.classList.remove("hidden");
-    }
+    if (createPanel) createPanel.classList.remove("hidden");
+    if (notesToolbar) notesToolbar.classList.add("hidden");
+    if (notesMain) notesMain.classList.add("hidden");
+  } else {
+    asidePanel.classList.remove("hidden");
+    notesPanel.classList.remove("hidden");
+    if (sidebarTreeSection) sidebarTreeSection.classList.remove("hidden");
+    if (settingsBlock) settingsBlock.classList.add("hidden");
+    if (createPanel) createPanel.classList.add("hidden");
+    if (notesToolbar) notesToolbar.classList.remove("hidden");
+    if (notesMain) notesMain.classList.remove("hidden");
   }
 
   [mobileNavNotes, mobileNavCreate, mobileNavSettings].forEach((btn) => {
@@ -533,6 +609,7 @@ function syncDesktopPanels() {
     notesPanel.classList.remove("hidden");
     mobileNav.classList.add("hidden");
     asideBlocks.forEach((block) => block.classList.remove("hidden"));
+    if (sidebarTreeSection) sidebarTreeSection.classList.remove("hidden");
     if (createPanel) createPanel.classList.remove("hidden");
     if (notesToolbar) notesToolbar.classList.remove("hidden");
     if (notesMain) notesMain.classList.remove("hidden");
@@ -620,6 +697,7 @@ function applyCustomization() {
   applyBgPattern(getBgPattern());
   applyDensityMode(getDensityMode());
   applyMotionMode(getMotionMode());
+  applySidebarWidth(getSidebarWidth());
   renderPrettyLink();
 }
 
@@ -669,6 +747,9 @@ function applyImportedSettings(next) {
   }
   if (typeof settings.motionMode === "string") {
     localStorage.setItem("motion-mode", settings.motionMode);
+  }
+  if (typeof settings.sidebarWidth === "string") {
+    localStorage.setItem("sidebar-width", settings.sidebarWidth);
   }
   if (typeof settings.profileLink === "string") {
     localStorage.setItem("profile-link", settings.profileLink.trim());
@@ -782,6 +863,28 @@ function matchSearch(n, text) {
   return hay.includes(text.toLowerCase());
 }
 
+function noteArticleHtml(n) {
+  return `
+    <article class="note" data-id="${n.id}">
+      <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
+      <div class="meta">${categoryLabel(n.category)} — ${formatDate(n.updatedAt)}</div>
+      <textarea data-role="content">${escapeHtml(n.content)}</textarea>
+      <div class="note-actions">
+        <select data-role="category">
+          ${["projects", "areas", "resources", "archives"]
+            .map(
+              (c) =>
+                `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(categoryLabel(c))}</option>`
+            )
+            .join("")}
+        </select>
+        <button type="button" data-role="save">${escapeHtml(t("save"))}</button>
+        <button type="button" class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
+      </div>
+    </article>
+  `;
+}
+
 function renderNotes() {
   const q = searchQuery.trim();
   const filtered = notes.filter((n) => !n.deletedAt).filter((n) => matchSearch(n, q));
@@ -794,12 +897,8 @@ function renderNotes() {
   if (signature === renderSignature) return;
   renderSignature = signature;
 
-  if (!filtered.length) {
-    notesWrap.innerHTML = `<p>${escapeHtml(t("noNotes"))}</p>`;
-    return;
-  }
-
-  const groups = ["projects", "areas", "resources", "archives"].map((category) => ({
+  const categories = ["projects", "areas", "resources", "archives"];
+  const groups = categories.map((category) => ({
     category,
     notes: filtered.filter((n) => n.category === category)
   }));
@@ -811,58 +910,39 @@ function renderNotes() {
     clearFolderBtn.classList.toggle("hidden", !activeFolder);
   }
 
-  notesWrap.innerHTML = groups
-    .filter((g) => g.notes.length > 0)
-    .map(
-      (g) => `
-      <section class="tree-group">
-        <details class="tree-node" ${activeFolder === g.category ? "open" : ""}>
-          <summary data-role="open-folder" data-folder="${g.category}">
-            <span class="tree-caret">▾</span>${escapeHtml(categoryLabel(g.category))}
-            <span class="folder-count">(${g.notes.length})</span>
-          </summary>
-          <div class="tree-children">
-            ${(activeFolder === g.category ? g.notes : [])
-              .map(
-                (n) => `
-              <div class="tree-item">
-                <span class="tree-bullet">•</span>
-                <article class="note" data-id="${n.id}">
-                  <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
-                  <div class="meta">${categoryLabel(n.category)} - ${formatDate(n.updatedAt)}</div>
-                  <textarea data-role="content">${escapeHtml(n.content)}</textarea>
-                  <div class="note-actions">
-                    <select data-role="category">
-                      ${["projects", "areas", "resources", "archives"]
-                        .map(
-                          (c) =>
-                            `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(
-                              categoryLabel(c)
-                            )}</option>`
-                        )
-                        .join("")}
-                    </select>
-                    <button data-role="save">${escapeHtml(t("save"))}</button>
-                    <button class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
-                  </div>
-                </article>
-              </div>
-            `
-              )
-              .join("")}
-          </div>
-        </details>
-      </section>
+  if (folderTreeEl) {
+    folderTreeEl.innerHTML = groups
+      .map(
+        (g) => `
+      <button type="button" class="folder-tree-item ${activeFolder === g.category ? "is-active" : ""}" data-role="open-folder" data-folder="${g.category}" aria-pressed="${activeFolder === g.category ? "true" : "false"}" title="${escapeHtml(categoryLabel(g.category))}">
+        <span class="folder-tree-row">
+          <span class="folder-tree-bullet" aria-hidden="true"></span>
+          <span class="folder-tree-label">${escapeHtml(categorySidebarLabel(g.category))}</span>
+        </span>
+        <span class="folder-tree-count">${g.notes.length}</span>
+      </button>
     `
-    )
-    .join("");
-
-  if (!activeFolder && filtered.length > 0) {
-    notesWrap.insertAdjacentHTML(
-      "afterbegin",
-      `<p class="folder-hint">${escapeHtml(t("chooseFolder"))}</p>`
-    );
+      )
+      .join("");
   }
+
+  if (!filtered.length) {
+    notesWrap.innerHTML = `<p>${escapeHtml(t("noNotes"))}</p>`;
+    return;
+  }
+
+  if (!activeFolder) {
+    notesWrap.innerHTML = `<p class="folder-hint">${escapeHtml(t("chooseFolder"))}</p>`;
+    return;
+  }
+
+  const inFolder = filtered.filter((n) => n.category === activeFolder);
+  if (!inFolder.length) {
+    notesWrap.innerHTML = `<p class="folder-hint">${escapeHtml(t("emptyFolder"))}</p>`;
+    return;
+  }
+
+  notesWrap.innerHTML = inFolder.map((n) => noteArticleHtml(n)).join("");
 }
 
 async function refreshNotes() {
@@ -1118,6 +1198,12 @@ if (motionModeInput) {
     applyMotionMode(motionModeInput.value);
   });
 }
+if (sidebarWidthInput) {
+  sidebarWidthInput.addEventListener("change", () => {
+    localStorage.setItem("sidebar-width", sidebarWidthInput.value);
+    applySidebarWidth(sidebarWidthInput.value);
+  });
+}
 if (mobileNav) {
   mobileNav.addEventListener("click", (event) => {
     const target = event.target.closest("[data-mobile-target]");
@@ -1169,16 +1255,25 @@ if (createPanel) {
   });
 }
 
+function onFolderPick(event) {
+  const folderTrigger = event.target.closest('[data-role="open-folder"]');
+  if (!folderTrigger || !folderTrigger.dataset.folder) return false;
+  event.preventDefault();
+  activeFolder = activeFolder === folderTrigger.dataset.folder ? "" : folderTrigger.dataset.folder;
+  renderSignature = "";
+  renderNotes();
+  return true;
+}
+
+if (folderTreeEl) {
+  folderTreeEl.addEventListener("click", (event) => {
+    onFolderPick(event);
+  });
+}
+
 notesWrap.addEventListener("click", async (event) => {
   const target = event.target;
-  const folderTrigger = target.closest('[data-role="open-folder"]');
-  if (folderTrigger && folderTrigger.dataset.folder) {
-    event.preventDefault();
-    activeFolder = activeFolder === folderTrigger.dataset.folder ? "" : folderTrigger.dataset.folder;
-    renderSignature = "";
-    renderNotes();
-    return;
-  }
+  if (onFolderPick(event)) return;
   const article = target.closest(".note");
   if (!article) return;
   const id = article.dataset.id;

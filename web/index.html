@@ -8,26 +8,30 @@
   </head>
   <body>
     <div id="auth-view" class="card auth">
-      <div class="auth-toggles" aria-label="Appearance">
-        <div class="segment-label" id="auth-theme-label">Theme</div>
-        <div class="segment-toggle segment-toggle--theme" id="auth-theme-seg" data-setting="theme" role="group"></div>
-        <div class="segment-label" id="auth-lang-label">Language</div>
-        <div class="segment-toggle segment-toggle--lang" id="auth-lang-seg" data-setting="lang" role="group"></div>
+      <aside class="auth-side" aria-label="Appearance">
+        <div class="auth-toggles">
+          <div class="segment-label" id="auth-theme-label">Theme</div>
+          <div class="segment-toggle segment-toggle--theme" id="auth-theme-seg" data-setting="theme" role="group"></div>
+          <div class="segment-label" id="auth-lang-label">Language</div>
+          <div class="segment-toggle segment-toggle--lang" id="auth-lang-seg" data-setting="lang" role="group"></div>
+        </div>
+      </aside>
+      <div class="auth-main">
+        <section class="auth-pitch" id="auth-pitch" aria-labelledby="auth-pitch-title">
+          <p class="auth-pitch__title" id="auth-pitch-title" role="heading" aria-level="2"></p>
+          <p class="auth-pitch__body" id="auth-pitch-body"></p>
+        </section>
+        <h1 id="auth-title">My Second Brain</h1>
+        <p id="auth-subtitle">PARA: Projects / Areas / Resources / Archives</p>
+        <input id="email" type="email" placeholder="Email" />
+        <input id="password" type="password" placeholder="Password (min 6)" />
+        <div class="row">
+          <button id="register-btn">Register</button>
+          <button id="login-btn">Login</button>
+        </div>
+        <p id="auth-error" class="error"></p>
+        <small class="creator-signature">Создатель: Сергей Курбанов</small>
       </div>
-      <section class="auth-pitch" id="auth-pitch" aria-labelledby="auth-pitch-title">
-        <p class="auth-pitch__title" id="auth-pitch-title" role="heading" aria-level="2"></p>
-        <p class="auth-pitch__body" id="auth-pitch-body"></p>
-      </section>
-      <h1 id="auth-title">My Second Brain</h1>
-      <p id="auth-subtitle">PARA: Projects / Areas / Resources / Archives</p>
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password (min 6)" />
-      <div class="row">
-        <button id="register-btn">Register</button>
-        <button id="login-btn">Login</button>
-      </div>
-      <p id="auth-error" class="error"></p>
-      <small class="creator-signature">Создатель: Сергей Курбанов</small>
     </div>
 
     <div id="app-view" class="hidden">
@@ -50,54 +54,82 @@
       </header>
 
       <main>
-        <aside class="card" id="aside-panel">
-          <section class="panel-block" data-mobile-panel="settings">
+        <aside class="card sidebar-rail" id="aside-panel">
+          <div class="sidebar-tree-wrap" id="sidebar-tree-section">
+            <div class="sidebar-tree-head" id="sidebar-folders-heading">Folders</div>
+            <p class="sidebar-tree-hint" id="sidebar-tree-hint"></p>
+            <nav class="folder-tree" id="folder-tree" aria-label="Folders"></nav>
+          </div>
+          <section class="panel-block sidebar-settings" data-mobile-panel="settings">
             <details id="settings-drawer">
-              <summary id="customization-heading">Customization</summary>
+              <summary id="customization-heading">Settings</summary>
               <div class="settings-drawer-body">
-                <input id="avatar-emoji" type="text" placeholder="Avatar emoji (e.g. 🚀)" maxlength="3" />
-                <input id="display-name" type="text" placeholder="Display name" />
-                <input id="app-title" type="text" placeholder="App title" />
-                <select id="accent-color" aria-label="Accent color">
-                  <option value="blue">Accent: Blue</option>
-                  <option value="purple">Accent: Purple</option>
-                  <option value="green">Accent: Green</option>
-                  <option value="orange">Accent: Orange</option>
-                </select>
-                <select id="font-family" aria-label="Font family">
-                  <option value="sans">Font: Sans</option>
-                  <option value="serif">Font: Serif</option>
-                  <option value="mono">Font: Mono</option>
-                </select>
-                <select id="bg-pattern" aria-label="Background pattern">
-                  <option value="none">Background: None</option>
-                  <option value="dots">Background: Dots</option>
-                  <option value="grid">Background: Grid</option>
-                </select>
-                <select id="density-mode" aria-label="Density mode">
-                  <option value="cozy">Density: Cozy</option>
-                  <option value="compact">Density: Compact</option>
-                </select>
-                <select id="motion-mode" aria-label="Motion mode">
-                  <option value="smooth">Motion: Smooth</option>
-                  <option value="reduced">Motion: Reduced</option>
-                </select>
-                <input id="profile-link" type="url" placeholder="Your link (https://...)" />
-                <a id="pretty-link" class="pretty-link hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
-                <h3 id="share-website-heading">Share website</h3>
-                <input id="public-site-link" type="text" readonly placeholder="Run go-online.cmd to get link" />
-                <div class="row">
-                  <button id="refresh-public-link-btn" type="button">Refresh link</button>
-                  <button id="copy-public-link-btn" type="button">Copy link</button>
-                </div>
-                <div class="row">
-                  <button id="export-settings-btn" type="button">Export settings</button>
-                  <button id="import-settings-btn" type="button">Import settings</button>
-                </div>
-                <h3 id="report-issue-heading">Report issue</h3>
-                <textarea id="issue-text" placeholder="Describe the issue"></textarea>
-                <button id="send-issue-btn">Send to developer</button>
-                <input id="import-settings-file" type="file" accept="application/json" class="hidden" />
+                <section class="settings-section" aria-labelledby="settings-section-profile-title">
+                  <h4 class="settings-section-title" id="settings-section-profile-title"></h4>
+                  <input id="avatar-emoji" type="text" placeholder="Avatar emoji (e.g. 🚀)" maxlength="3" />
+                  <input id="display-name" type="text" placeholder="Display name" />
+                  <input id="app-title" type="text" placeholder="App title" />
+                </section>
+
+                <section class="settings-section" aria-labelledby="settings-section-appearance-title">
+                  <h4 class="settings-section-title" id="settings-section-appearance-title"></h4>
+                  <select id="accent-color" aria-label="Accent color">
+                    <option value="blue">Accent: Blue</option>
+                    <option value="purple">Accent: Purple</option>
+                    <option value="green">Accent: Green</option>
+                    <option value="orange">Accent: Orange</option>
+                  </select>
+                  <select id="font-family" aria-label="Font family">
+                    <option value="sans">Font: Sans</option>
+                    <option value="serif">Font: Serif</option>
+                    <option value="mono">Font: Mono</option>
+                  </select>
+                  <select id="bg-pattern" aria-label="Background pattern">
+                    <option value="none">Background: None</option>
+                    <option value="dots">Background: Dots</option>
+                    <option value="grid">Background: Grid</option>
+                  </select>
+                  <select id="density-mode" aria-label="Density mode">
+                    <option value="cozy">Density: Cozy</option>
+                    <option value="compact">Density: Compact</option>
+                  </select>
+                  <select id="motion-mode" aria-label="Motion mode">
+                    <option value="smooth">Motion: Smooth</option>
+                    <option value="reduced">Motion: Reduced</option>
+                  </select>
+                  <select id="sidebar-width" aria-label="Sidebar width">
+                    <option value="comfortable">Sidebar: Comfortable</option>
+                    <option value="narrow">Sidebar: Compact</option>
+                  </select>
+                </section>
+
+                <section class="settings-section" aria-labelledby="settings-section-links-title">
+                  <h4 class="settings-section-title" id="settings-section-links-title"></h4>
+                  <input id="profile-link" type="url" placeholder="Your link (https://...)" />
+                  <a id="pretty-link" class="pretty-link hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
+                </section>
+
+                <section class="settings-section" aria-labelledby="settings-section-data-title">
+                  <h4 class="settings-section-title" id="settings-section-data-title"></h4>
+                  <p class="settings-subheading" id="share-website-heading"></p>
+                  <input id="public-site-link" type="text" readonly placeholder="Run go-online.cmd to get link" />
+                  <div class="row">
+                    <button id="refresh-public-link-btn" type="button">Refresh link</button>
+                    <button id="copy-public-link-btn" type="button">Copy link</button>
+                  </div>
+                  <div class="row">
+                    <button id="export-settings-btn" type="button">Export settings</button>
+                    <button id="import-settings-btn" type="button">Import settings</button>
+                  </div>
+                  <input id="import-settings-file" type="file" accept="application/json" class="hidden" />
+                </section>
+
+                <section class="settings-section" aria-labelledby="settings-section-support-title">
+                  <h4 class="settings-section-title" id="settings-section-support-title"></h4>
+                  <p class="settings-subheading" id="report-issue-heading"></p>
+                  <textarea id="issue-text" placeholder="Describe the issue"></textarea>
+                  <button id="send-issue-btn">Send to developer</button>
+                </section>
               </div>
             </details>
           </section>
