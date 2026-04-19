@@ -2065,6 +2065,7 @@ async function boot() {
     startSyncLoop();
     startLiveEvents();
     sync();
+    setTimeout(startTutorialIfNeeded, 1000);
   } catch (error) {
     showToast(t("sessionExpired"), { variant: "error", duration: 6000 });
     clearAuth();
@@ -2121,3 +2122,85 @@ function bindGlobalUx() {
 bindGlobalUx();
 boot();
 
+// --- Tutorial / Onboarding Logic ---
+function startTutorialIfNeeded() {
+  if (localStorage.getItem("tutorialCompleted") === "true") return;
+
+  const overlay = document.getElementById("tutorial-overlay");
+  const title = document.getElementById("tutorial-title");
+  const text = document.getElementById("tutorial-text");
+  const skipBtn = document.getElementById("tutorial-skip");
+  const nextBtn = document.getElementById("tutorial-next");
+
+  if (!overlay) return;
+
+  const steps = [
+    {
+      target: document.getElementById("note-create-title"),
+      title: "Создание заметок",
+      text: "Быстро записывайте свои идеи. Они сохраняются автоматически."
+    },
+    {
+      target: document.querySelector(".sidebar-rail"),
+      title: "Организация по системе PARA",
+      text: "Сортируйте заметки по папкам: Проекты, Области, Ресурсы или Архивы."
+    },
+    {
+      target: document.getElementById("notes-main"),
+      title: "Канбан-доска",
+      text: "Сбросьте фильтр папки, чтобы увидеть заметки в виде Канбан-доски. Перетаскивайте их между колонками!"
+    },
+    {
+      target: document.querySelector(".sidebar-settings"),
+      title: "Кастомизация",
+      text: "Здесь вы можете изменить шрифты, цвета и масштаб интерфейса под себя."
+    }
+  ];
+
+  let currentStep = 0;
+  let activeHighlight = null;
+
+  function showStep(index) {
+    if (activeHighlight) {
+      activeHighlight.classList.remove("tutorial-highlight");
+    }
+    
+    if (index >= steps.length) {
+      endTutorial();
+      return;
+    }
+
+    const step = steps[index];
+    title.textContent = step.title;
+    text.textContent = step.text;
+
+    if (step.target) {
+      step.target.classList.add("tutorial-highlight");
+      activeHighlight = step.target;
+      step.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    if (index === steps.length - 1) {
+      nextBtn.textContent = "Готово!";
+    } else {
+      nextBtn.textContent = "Далее";
+    }
+  }
+
+  function endTutorial() {
+    if (activeHighlight) {
+      activeHighlight.classList.remove("tutorial-highlight");
+    }
+    overlay.classList.add("hidden");
+    localStorage.setItem("tutorialCompleted", "true");
+  }
+
+  skipBtn.onclick = endTutorial;
+  nextBtn.onclick = () => {
+    currentStep++;
+    showStep(currentStep);
+  };
+
+  overlay.classList.remove("hidden");
+  showStep(0);
+}

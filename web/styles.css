@@ -280,6 +280,13 @@ details#settings-drawer summary::-webkit-details-marker { display: none; }
   overflow: hidden;
 }
 
+.main-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -315,8 +322,11 @@ details#settings-drawer summary::-webkit-details-marker { display: none; }
   gap: 24px;
   padding: 32px;
   height: 100%;
+  width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   align-items: flex-start;
+  flex-wrap: nowrap;
 }
 
 .kanban-column {
@@ -425,25 +435,124 @@ details#settings-drawer summary::-webkit-details-marker { display: none; }
 
 /* Create Panel */
 .create-column {
-  padding: 24px 32px;
+  padding: 16px 32px;
   border-bottom: 1px solid var(--border-light);
-  background: var(--bg-sidebar);
+  background: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
 }
-#create-note-heading { font-size: 16px; margin-bottom: 16px; }
+#create-note-heading { display: none; } /* Hide the big heading for a cleaner look */
 
 .note-editor-fusion {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-light);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 12px 16px;
+  box-shadow: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
-.note-editor-fusion:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.note-editor-fusion:focus-within { 
+  background: var(--bg-main);
+  border-color: var(--accent); 
+  box-shadow: 0 0 0 3px var(--accent-bg); 
+}
+
+.note-fusion-title, .note-fusion-body {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+.note-fusion-body {
+  min-height: 40px;
+}
+#create-note-btn {
+  align-self: flex-end;
+}
+#note-category {
+  max-width: 150px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+}
+
+/* Tutorial Overlay */
+.tutorial-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+.tutorial-overlay.hidden {
+  display: none !important;
+}
+
+.tutorial-tooltip {
+  background: var(--bg-main);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 90%;
+  max-width: 340px;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: absolute;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#tutorial-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+#tutorial-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.tutorial-actions button {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.tutorial-actions button.secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+}
+.tutorial-actions button.secondary:hover {
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+}
+
+/* Highlighting target elements during tutorial */
+.tutorial-highlight {
+  position: relative;
+  z-index: 10000;
+  box-shadow: 0 0 0 4px var(--accent-bg), 0 0 20px rgba(0,0,0,0.1) !important;
+  border-radius: var(--radius-md);
+  background: var(--bg-main) !important;
+  pointer-events: none;
+}
 
 /* Toast & Banners */
 .offline-banner { background: var(--danger); color: white; text-align: center; padding: 8px; font-size: 13px; font-weight: 500; }

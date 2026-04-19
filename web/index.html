@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <a class="skip-link" id="skip-to-content" href="#main-content"></a>
+
     <div id="offline-banner" class="offline-banner hidden" role="status" aria-live="polite"></div>
     <div id="auth-view" class="auth-view">
       <aside class="auth-side" id="auth-side" aria-label="">
@@ -53,7 +53,7 @@
           <small id="me"></small>
         </div>
         <div class="header-actions">
-          <small id="sync-status" class="header-sync-status" aria-live="polite"></small>
+
           <div
             class="segment-toggle segment-toggle--theme"
             id="app-theme-seg"
@@ -212,6 +212,16 @@
 
     <div id="toast-host" class="toast-host" aria-live="polite" aria-atomic="true"></div>
 
+    <div id="tutorial-overlay" class="tutorial-overlay hidden">
+      <div class="tutorial-tooltip">
+        <h3 id="tutorial-title">Welcome!</h3>
+        <p id="tutorial-text">Let's take a quick tour.</p>
+        <div class="tutorial-actions">
+          <button id="tutorial-skip" class="secondary">Skip</button>
+          <button id="tutorial-next">Next</button>
+        </div>
+      </div>
+    </div>
     <script src="/app.js"></script>
   </body>
   </html>
