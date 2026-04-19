@@ -4,8 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta id="meta-description" name="description" content="" />
-    <meta name="theme-color" content="#fafafa" />
+    <meta name="theme-color" content="#f3f4f6" />
     <title>My Second Brain</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -46,6 +52,7 @@
           <small id="me"></small>
         </div>
         <div class="header-actions">
+          <small id="sync-status" class="header-sync-status" aria-live="polite"></small>
           <div
             class="segment-toggle segment-toggle--theme"
             id="app-theme-seg"
@@ -168,7 +175,6 @@
               <input id="search" type="text" placeholder="" />
               <small id="active-folder-label"></small>
               <button id="clear-folder-btn" type="button" class="hidden"></button>
-              <small id="sync-status" aria-live="polite"></small>
             </div>
             <button type="button" id="toolbar-new-note" class="toolbar-new-note hidden"></button>
           </div>
@@ -181,7 +187,10 @@
                 <option value="resources" selected></option>
                 <option value="archives"></option>
               </select>
-              <textarea id="note-combined" class="note-combined-editor" rows="8" spellcheck="true"></textarea>
+              <div class="note-editor-fusion">
+                <input type="text" id="note-create-title" class="note-fusion-title" maxlength="150" spellcheck="true" />
+                <textarea id="note-create-body" class="note-fusion-body" rows="7" spellcheck="true"></textarea>
+              </div>
               <button id="create-note-btn" type="button"></button>
             </section>
             <div class="notes-main" id="notes-main" data-mobile-panel="notes">

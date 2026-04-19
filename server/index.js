@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const { getData, saveData, addIssue } = require("./store");
+const { sendFeedbackEmail } = require("./mail");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -332,6 +333,14 @@ app.post("/api/feedback", auth, (req, res) => {
     message,
     userAgent: req.headers["user-agent"] || "unknown",
     createdAt: Date.now()
+  });
+  sendFeedbackEmail({
+    userEmail: req.user.email,
+    message,
+    userAgent: req.headers["user-agent"] || "unknown"
+  }).catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error("[mail] sendFeedbackEmail failed:", err && err.message ? err.message : err);
   });
   return res.status(201).json({ ok: true });
 });

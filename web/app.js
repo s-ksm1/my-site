@@ -19,7 +19,8 @@ const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 
 const noteCategory = document.getElementById("note-category");
-const noteCombined = document.getElementById("note-combined");
+const noteCreateTitle = document.getElementById("note-create-title");
+const noteCreateBody = document.getElementById("note-create-body");
 const createNoteBtn = document.getElementById("create-note-btn");
 const toolbarNewNote = document.getElementById("toolbar-new-note");
 const notesWrap = document.getElementById("notes");
@@ -110,6 +111,8 @@ let searchQuery = "";
 let renderSignature = "";
 let syncInFlight = false;
 let activeFolder = "";
+const noteAutosaveTimers = new Map();
+const noteLastSavedSnap = new Map();
 
 const I18N = {
   ru: {
@@ -154,8 +157,8 @@ const I18N = {
     importSettings: "Импорт настроек",
     searchPlaceholder: "Поиск заметок...",
     searchFocusShortcut: "Быстрый фокус: Ctrl+K или /",
-    noteCombinedPlaceholder:
-      "Первая строка — заголовок, ниже — текст (как в Obsidian / Notion).",
+    noteTitlePlaceholder: "Заголовок",
+    noteBodyPlaceholder: "Текст заметки…",
     toolbarNewNote: "＋ Новая заметка в «{folder}»",
     aboutAppSummary: "Зачем этот сервис",
     aboutAppDetail:
@@ -294,7 +297,8 @@ const I18N = {
     importSettings: "Import settings",
     searchPlaceholder: "Search notes...",
     searchFocusShortcut: "Focus search: Ctrl+K or /",
-    noteCombinedPlaceholder: "First line is the title; below is the note body (Obsidian / Notion style).",
+    noteTitlePlaceholder: "Title",
+    noteBodyPlaceholder: "Note body…",
     toolbarNewNote: "＋ New note in “{folder}”",
     aboutAppSummary: "What this app is for",
     aboutAppDetail:
@@ -433,8 +437,8 @@ const I18N = {
     importSettings: "Sozlamalarni import",
     searchPlaceholder: "Eslatmalarni qidirish...",
     searchFocusShortcut: "Ctrl+K yoki / — qidiruv",
-    noteCombinedPlaceholder:
-      "Birinchi qator — sarlavha, pastroqda matn (Obsidian / Notion uslubi).",
+    noteTitlePlaceholder: "Sarlavha",
+    noteBodyPlaceholder: "Eslatma matni…",
     toolbarNewNote: "＋ «{folder}» da yangi eslatma",
     aboutAppSummary: "Bu servis nima uchun",
     aboutAppDetail:
@@ -616,27 +620,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function joinTitleContent(title, content) {
-  const tit = String(title ?? "").replace(/\r\n/g, "\n");
-  const con = String(content ?? "").replace(/\r\n/g, "\n");
-  if (!con.trim()) return tit;
-  return `${tit}\n${con}`;
-}
-
-function splitTitleContent(combined) {
-  const untitled = t("untitledNote");
-  const raw = String(combined ?? "").replace(/\r\n/g, "\n").trim();
-  if (!raw) return { title: untitled, content: "" };
-  const idx = raw.indexOf("\n");
-  if (idx === -1) {
-    const single = raw.slice(0, 150).trim();
-    return { title: single || untitled, content: "" };
-  }
-  const title = raw.slice(0, idx).trim().slice(0, 150) || untitled;
-  const content = raw.slice(idx + 1).trimEnd();
-  return { title, content };
-}
-
 function renderAboutBody() {
   const bodyEl = document.getElementById("about-app-body");
   const summaryEl = document.getElementById("about-app-summary");
@@ -715,7 +698,7 @@ function updateMetaThemeColor() {
     meta.setAttribute("name", "theme-color");
     document.head.appendChild(meta);
   }
-  const resolved = document.documentElement.getAttribute("data-theme") === "dark" ? "#0a0a0a" : "#fafafa";
+  const resolved = document.documentElement.getAttribute("data-theme") === "dark" ? "#030712" : "#f3f4f6";
   meta.setAttribute("content", resolved);
 }
 
@@ -972,7 +955,8 @@ function applyLanguage() {
     searchInput.placeholder = t("searchPlaceholder");
     searchInput.title = t("searchFocusShortcut");
   }
-  if (noteCombined) noteCombined.placeholder = t("noteCombinedPlaceholder");
+  if (noteCreateTitle) noteCreateTitle.placeholder = t("noteTitlePlaceholder");
+  if (noteCreateBody) noteCreateBody.placeholder = t("noteBodyPlaceholder");
   if (issueText) issueText.placeholder = t("issuePlaceholder");
   if (displayNameInput) displayNameInput.placeholder = t("displayNamePlaceholder");
   if (appTitleInput) appTitleInput.placeholder = t("appTitlePlaceholder");
@@ -1032,7 +1016,7 @@ function setMobilePanel(nextPanel) {
 }
 
 function focusNewNoteComposer() {
-  if (!activeFolder || !noteCategory || !noteCombined) return;
+  if (!activeFolder || !noteCategory) return;
   noteCategory.value = activeFolder;
   const compact = window.matchMedia("(max-width: 900px)").matches;
   if (compact) {
@@ -1040,9 +1024,13 @@ function focusNewNoteComposer() {
   }
   createPanel?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   requestAnimationFrame(() => {
-    noteCombined.focus({ preventScroll: true });
-    const len = noteCombined.value.length;
-    noteCombined.setSelectionRange(len, len);
+    const el = noteCreateTitle || noteCreateBody;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    if (el === noteCreateTitle && noteCreateTitle) {
+      const len = noteCreateTitle.value.length;
+      noteCreateTitle.setSelectionRange(len, len);
+    }
   });
 }
 
@@ -1321,11 +1309,99 @@ function matchSearch(n, text) {
   return hay.includes(text.toLowerCase());
 }
 
+function resetNotesHtml(html) {
+  noteAutosaveTimers.forEach((tid) => clearTimeout(tid));
+  noteAutosaveTimers.clear();
+  noteLastSavedSnap.clear();
+  notesWrap.innerHTML = html;
+}
+
+function snapshotFromPayload(p) {
+  return JSON.stringify({ title: p.title, content: p.content, category: p.category });
+}
+
+function buildPayloadFromArticle(article) {
+  const titleEl = article.querySelector('[data-role="title"]');
+  const contentEl = article.querySelector('[data-role="content"]');
+  const catEl = article.querySelector('[data-role="category"]');
+  const title = (titleEl?.value || "").trim().slice(0, 150) || t("untitledNote");
+  return {
+    title,
+    content: String(contentEl?.value ?? ""),
+    category: catEl?.value || "resources"
+  };
+}
+
+async function persistNoteFromArticle(article) {
+  const id = article.dataset.id;
+  if (!id) return;
+  const p = buildPayloadFromArticle(article);
+  const data = await api(`/api/notes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      title: p.title,
+      content: p.content,
+      category: p.category
+    })
+  });
+  notes = notes.map((n) => (n.id === id ? data.note : n));
+  const titleEl = article.querySelector('[data-role="title"]');
+  const contentEl = article.querySelector('[data-role="content"]');
+  const catEl = article.querySelector('[data-role="category"]');
+  if (titleEl) titleEl.value = data.note.title;
+  if (contentEl) contentEl.value = data.note.content;
+  if (catEl) catEl.value = data.note.category;
+  const meta = article.querySelector(".meta");
+  if (meta) meta.textContent = `${categoryLabel(data.note.category)} — ${formatDate(data.note.updatedAt)}`;
+  noteLastSavedSnap.set(
+    id,
+    snapshotFromPayload({
+      title: data.note.title,
+      content: data.note.content,
+      category: data.note.category
+    })
+  );
+  renderSignature = "";
+}
+
+function scheduleNoteAutosave(article) {
+  const id = article.dataset.id;
+  if (!id) return;
+  const prev = noteAutosaveTimers.get(id);
+  if (prev) clearTimeout(prev);
+  const tid = setTimeout(() => {
+    noteAutosaveTimers.delete(id);
+    flushNoteAutosave(article);
+  }, 850);
+  noteAutosaveTimers.set(id, tid);
+}
+
+async function flushNoteAutosave(article, options = {}) {
+  const { force = false } = options;
+  const id = article.dataset.id;
+  if (!id) return;
+  const pending = noteAutosaveTimers.get(id);
+  if (pending) {
+    clearTimeout(pending);
+    noteAutosaveTimers.delete(id);
+  }
+  const p = buildPayloadFromArticle(article);
+  const snap = snapshotFromPayload(p);
+  if (!force && noteLastSavedSnap.get(id) === snap) return;
+  try {
+    await persistNoteFromArticle(article);
+  } catch (error) {
+    showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
+  }
+}
+
 function noteArticleHtml(n) {
-  const block = escapeHtml(joinTitleContent(n.title, n.content));
   return `
     <article class="note" data-id="${n.id}">
-      <textarea data-role="block" class="note-block-editor" rows="8" spellcheck="true">${block}</textarea>
+      <div class="note-editor-fusion">
+        <input type="text" data-role="title" class="note-fusion-title" maxlength="150" spellcheck="true" value="${escapeHtml(n.title)}" />
+        <textarea data-role="content" class="note-fusion-body" rows="7" spellcheck="true">${escapeHtml(n.content)}</textarea>
+      </div>
       <div class="meta">${categoryLabel(n.category)} — ${formatDate(n.updatedAt)}</div>
       <div class="note-actions">
         <select data-role="category">
@@ -1392,22 +1468,28 @@ function renderNotes() {
   }
 
   if (!filtered.length) {
-    notesWrap.innerHTML = `<p>${escapeHtml(t("noNotes"))}</p>`;
+    resetNotesHtml(`<p>${escapeHtml(t("noNotes"))}</p>`);
     return;
   }
 
   if (!activeFolder) {
-    notesWrap.innerHTML = `<p class="folder-hint">${escapeHtml(t("chooseFolder"))}</p>`;
+    resetNotesHtml(`<p class="folder-hint">${escapeHtml(t("chooseFolder"))}</p>`);
     return;
   }
 
   const inFolder = filtered.filter((n) => n.category === activeFolder);
   if (!inFolder.length) {
-    notesWrap.innerHTML = `<p class="folder-hint">${escapeHtml(t("emptyFolder"))}</p>`;
+    resetNotesHtml(`<p class="folder-hint">${escapeHtml(t("emptyFolder"))}</p>`);
     return;
   }
 
-  notesWrap.innerHTML = inFolder.map((n) => noteArticleHtml(n)).join("");
+  resetNotesHtml(inFolder.map((n) => noteArticleHtml(n)).join(""));
+  inFolder.forEach((n) => {
+    noteLastSavedSnap.set(
+      n.id,
+      snapshotFromPayload({ title: n.title, content: n.content, category: n.category })
+    );
+  });
 }
 
 async function refreshNotes() {
@@ -1431,9 +1513,9 @@ async function sync() {
       renderNotes();
     }
     lastSync = data.serverTime || Date.now();
-    syncStatus.textContent = `${t("syncedPrefix")} ${formatTime()}`;
+    if (syncStatus) syncStatus.textContent = `${t("syncedPrefix")} ${formatTime()}`;
   } catch (error) {
-    syncStatus.textContent = t("syncError");
+    if (syncStatus) syncStatus.textContent = t("syncError");
   } finally {
     syncInFlight = false;
   }
@@ -1468,7 +1550,7 @@ async function startLiveEvents() {
     esToken = String(body.token || "").trim();
     if (!esToken) throw new Error("events-token");
   } catch (error) {
-    syncStatus.textContent = t("liveReconnect");
+    if (syncStatus) syncStatus.textContent = t("liveReconnect");
     setTimeout(() => {
       startLiveEvents();
     }, 4000);
@@ -1482,7 +1564,7 @@ async function startLiveEvents() {
     try {
       const data = JSON.parse(event.data || "{}");
       if (data.event === "connected") {
-        syncStatus.textContent = t("liveConnected");
+        if (syncStatus) syncStatus.textContent = t("liveConnected");
         return;
       }
 
@@ -1503,14 +1585,14 @@ async function startLiveEvents() {
       if (data.serverTime) {
         lastSync = data.serverTime;
       }
-      syncStatus.textContent = `${t("liveSyncedPrefix")} ${formatTime()}`;
+      if (syncStatus) syncStatus.textContent = `${t("liveSyncedPrefix")} ${formatTime()}`;
     } catch (error) {
-      syncStatus.textContent = t("liveParseError");
+      if (syncStatus) syncStatus.textContent = t("liveParseError");
     }
   };
 
   es.onerror = () => {
-    syncStatus.textContent = t("liveReconnect");
+    if (syncStatus) syncStatus.textContent = t("liveReconnect");
     stopLiveEvents();
     setTimeout(startLiveEvents, 2000);
   };
@@ -1544,16 +1626,17 @@ async function doAuth(mode) {
 
 async function createNote() {
   try {
-    const combined = noteCombined ? noteCombined.value : "";
-    if (!String(combined || "").trim()) {
+    const titleRaw = (noteCreateTitle && noteCreateTitle.value) || "";
+    const bodyRaw = (noteCreateBody && noteCreateBody.value) || "";
+    if (!titleRaw.trim() && !bodyRaw.trim()) {
       showToast(t("emptyNoteCombined"), { variant: "error", duration: 4000 });
       return;
     }
-    const { title, content } = splitTitleContent(combined);
+    const title = titleRaw.trim().slice(0, 150) || t("untitledNote");
     const payload = {
       title,
       category: noteCategory.value,
-      content
+      content: bodyRaw
     };
     const data = await api("/api/notes", {
       method: "POST",
@@ -1564,7 +1647,8 @@ async function createNote() {
     activeFolder = newNote.category;
     renderSignature = "";
     renderNotes();
-    if (noteCombined) noteCombined.value = "";
+    if (noteCreateTitle) noteCreateTitle.value = "";
+    if (noteCreateBody) noteCreateBody.value = "";
     requestAnimationFrame(() => {
       const el = notesWrap.querySelector(`article.note[data-id="${newNote.id}"]`);
       if (el) {
@@ -1578,23 +1662,11 @@ async function createNote() {
   }
 }
 
-async function saveOne(id, title, content, category) {
-  const current = notes.find((n) => n.id === id);
-  if (!current) return;
-  const data = await api(`/api/notes/${id}`, {
-    method: "PUT",
-    body: JSON.stringify({
-      title,
-      content,
-      category
-    })
-  });
-  notes = notes.map((n) => (n.id === id ? data.note : n));
-  renderSignature = "";
-  renderNotes();
-}
-
 async function removeOne(id) {
+  const pending = noteAutosaveTimers.get(id);
+  if (pending) clearTimeout(pending);
+  noteAutosaveTimers.delete(id);
+  noteLastSavedSnap.delete(id);
   await api(`/api/notes/${id}`, { method: "DELETE" });
   notes = notes.filter((n) => n.id !== id);
   renderSignature = "";
@@ -1828,20 +1900,40 @@ if (folderTreeEl) {
   });
 }
 
+notesWrap.addEventListener("input", (event) => {
+  const article = event.target.closest(".note");
+  if (!article) return;
+  if (event.target.matches('[data-role="title"], [data-role="content"]')) {
+    scheduleNoteAutosave(article);
+  }
+});
+
+notesWrap.addEventListener("change", (event) => {
+  const article = event.target.closest(".note");
+  if (!article) return;
+  if (event.target.matches('[data-role="category"]')) {
+    scheduleNoteAutosave(article);
+  }
+});
+
+notesWrap.addEventListener("focusout", (event) => {
+  const article = event.target.closest(".note");
+  if (!article) return;
+  if (!event.target.matches('[data-role="title"], [data-role="content"], [data-role="category"]')) return;
+  const next = event.relatedTarget;
+  if (next && article.contains(next)) return;
+  flushNoteAutosave(article);
+});
+
 notesWrap.addEventListener("click", async (event) => {
   const target = event.target;
   if (onFolderPick(event)) return;
   const article = target.closest(".note");
   if (!article) return;
-  const id = article.dataset.id;
-  const blockEl = article.querySelector('[data-role="block"]');
-  const combined = blockEl ? blockEl.value : "";
-  const { title, content } = splitTitleContent(combined);
-  const category = article.querySelector('[data-role="category"]').value;
 
   if (target.dataset.role === "save") {
     try {
-      await saveOne(id, title, content, category);
+      await flushNoteAutosave(article, { force: true });
     } catch (error) {
       showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
     }
