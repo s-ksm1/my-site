@@ -642,7 +642,7 @@ function updateMetaThemeColor() {
     meta.setAttribute("name", "theme-color");
     document.head.appendChild(meta);
   }
-  const resolved = document.documentElement.getAttribute("data-theme") === "dark" ? "#0d1117" : "#ffffff";
+  const resolved = document.documentElement.getAttribute("data-theme") === "dark" ? "#0a0a0a" : "#fafafa";
   meta.setAttribute("content", resolved);
 }
 
