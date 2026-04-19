@@ -1015,23 +1015,39 @@ function setMobilePanel(nextPanel) {
   });
 }
 
-function focusNewNoteComposer() {
-  if (!activeFolder || !noteCategory) return;
-  noteCategory.value = activeFolder;
-  const compact = window.matchMedia("(max-width: 900px)").matches;
-  if (compact) {
-    setMobilePanel("create");
-  }
-  createPanel?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  requestAnimationFrame(() => {
-    const el = noteCreateTitle || noteCreateBody;
-    if (!el) return;
-    el.focus({ preventScroll: true });
-    if (el === noteCreateTitle && noteCreateTitle) {
-      const len = noteCreateTitle.value.length;
-      noteCreateTitle.setSelectionRange(len, len);
+async function focusNewNoteComposer() {
+  const category = activeFolder || "resources";
+  
+  const newNote = {
+    title: "",
+    content: "",
+    category: category
+  };
+  
+  try {
+    const data = await api("/api/notes", "POST", newNote);
+    const createdNote = data.note;
+    notes.unshift(createdNote);
+    renderSignature = "";
+    renderNotes();
+    
+    // Switch to notes view on mobile if needed
+    const compact = window.matchMedia("(max-width: 900px)").matches;
+    if (compact) {
+      setMobilePanel("notes");
     }
-  });
+
+    requestAnimationFrame(() => {
+      const noteEl = document.querySelector(`.note[data-id="${createdNote.id}"]`);
+      if (noteEl) {
+        noteEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const titleInput = noteEl.querySelector('.note-fusion-title');
+        if (titleInput) titleInput.focus();
+      }
+    });
+  } catch (err) {
+    showToast(t("syncError") || err.message, { variant: "error" });
+  }
 }
 
 function syncDesktopPanels() {
@@ -2205,39 +2221,4 @@ function startTutorialIfNeeded() {
   showStep(0);
 }
 
-// --- Expanding Create Bar Logic ---
-const noteCreatorWrap = document.getElementById("note-creator-wrap");
-const noteCreatorExpanded = document.getElementById("note-creator-expanded");
 
-if (noteCreatorWrap && noteCreatorExpanded && noteCreateTitle && noteCreateBody) {
-  function collapseCreateBar() {
-    if (!noteCreateTitle.value.trim() && !noteCreateBody.value.trim()) {
-      noteCreatorExpanded.classList.add("hidden");
-      noteCreatorWrap.classList.remove("expanded");
-    }
-  }
-
-  function expandCreateBar() {
-    noteCreatorExpanded.classList.remove("hidden");
-    noteCreatorWrap.classList.add("expanded");
-  }
-
-  noteCreateTitle.addEventListener("focus", expandCreateBar);
-  noteCreateTitle.addEventListener("click", expandCreateBar);
-  noteCreateBody.addEventListener("focus", expandCreateBar);
-
-  document.addEventListener("click", (e) => {
-    if (!noteCreatorWrap.contains(e.target)) {
-      collapseCreateBar();
-    }
-  });
-
-  // Check inputs on create note click and potentially collapse
-  if (createNoteBtn) {
-    createNoteBtn.addEventListener("click", () => {
-      setTimeout(() => {
-        collapseCreateBar();
-      }, 50);
-    });
-  }
-}
