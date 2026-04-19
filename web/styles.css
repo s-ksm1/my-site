@@ -450,14 +450,165 @@ details#settings-drawer summary::-webkit-details-marker { display: none; }
 .toast-host { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
 .toast { background: var(--text-primary); color: var(--bg-main); padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); pointer-events: auto; display: flex; gap: 12px; align-items: center; margin-top: 8px; }
 
-.mobile-nav { display: none; }
+/* Responsive adjustments & Mobile Nav */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-header);
+  border-top: 1px solid var(--border-light);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  gap: 8px;
+}
 
-/* Responsive adjustments */
 @media (max-width: 900px) {
-  main#main-content { flex-direction: column; }
-  .sidebar-rail { width: 100%; border-right: none; border-bottom: 1px solid var(--border-light); max-height: 200px; }
-  .mobile-nav { display: flex; padding: 12px; background: var(--bg-header); border-top: 1px solid var(--border-light); gap: 8px; }
-  .mobile-nav button { flex: 1; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-light); }
-  .mobile-nav button.active { background: var(--text-primary); color: var(--bg-main); }
-  .kanban-board { padding: 16px; }
+  body {
+    padding-bottom: 70px; /* Space for mobile nav */
+  }
+  
+  header {
+    padding: 0 16px;
+  }
+  
+  .header-actions .segment-toggle {
+    display: none; /* Hide toggles on mobile header for space */
+  }
+
+  #app-view {
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  main#main-content {
+    flex-direction: column;
+    overflow: visible;
+  }
+  
+  .sidebar-rail {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+    max-height: none;
+  }
+  
+  /* Mobile app logic toggles visibility of these via JS, so we just style the nav */
+  .mobile-nav {
+    display: flex;
+  }
+  
+  .mobile-nav button {
+    flex: 1;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    box-shadow: none;
+  }
+  
+  .mobile-nav button.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 1px solid var(--accent-bg);
+  }
+  
+  .toolbar {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    height: auto;
+  }
+  
+  .kanban-board {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .kanban-column {
+    flex: 0 0 280px;
+  }
+  
+  .notes-main {
+    padding: 16px;
+  }
+  
+  #notes {
+    grid-template-columns: 1fr;
+  }
+  
+  .toast-host {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* User Settings Overrides */
+
+/* Typography */
+:root[data-font="serif"] {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+:root[data-font="mono"] {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Accent Colors */
+:root[data-accent="purple"] {
+  --accent: #8b5cf6;
+  --accent-hover: #7c3aed;
+  --accent-bg: rgba(139, 92, 246, 0.1);
+}
+:root[data-accent="green"] {
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --accent-bg: rgba(16, 185, 129, 0.1);
+}
+:root[data-accent="orange"] {
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  --accent-bg: rgba(249, 115, 22, 0.1);
+}
+
+/* Density */
+:root[data-density="compact"] .note {
+  padding: 12px 16px;
+  gap: 4px;
+}
+:root[data-density="compact"] .kanban-board {
+  padding: 16px;
+}
+:root[data-density="compact"] .folder-tree-item {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Sidebar Width */
+:root[data-sidebar-width="narrow"] .sidebar-rail {
+  width: 200px;
+}
+
+/* Background Patterns */
+:root[data-pattern="dots"] .main-content-area {
+  background-image: radial-gradient(var(--border-strong) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+:root[data-pattern="grid"] .main-content-area {
+  background-image: linear-gradient(var(--border-light) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Motion */
+:root[data-motion="reduced"] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Misc Layout fixes */
+.app-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 16px;
 }
