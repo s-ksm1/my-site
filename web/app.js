@@ -1028,7 +1028,10 @@ async function focusNewNoteComposer() {
   };
   
   try {
-    const data = await api("/api/notes", "POST", newNote);
+    const data = await api("/api/notes", {
+      method: "POST",
+      body: JSON.stringify(newNote)
+    });
     const createdNote = data.note;
     notes.unshift(createdNote);
     renderSignature = "";
@@ -1043,8 +1046,9 @@ async function focusNewNoteComposer() {
     // Open Notion-style editor instead of focusing inline
     openNotionEditor(createdNote.id);
   } catch (err) {
-    showToast(t("syncError") || err.message, { variant: "error" });
+    showToast(`${t("syncError")}: ${err.message}`, { variant: "error" });
   }
+
 }
 
 
@@ -1497,7 +1501,11 @@ function renderNotes() {
     notesWrap.classList.add("kanban-board");
     const boardHtml = groups.map(g => `
       <div class="kanban-column" data-category="${g.category}">
-        <h3 class="kanban-column-header">${escapeHtml(categoryLabel(g.category))} <span class="kanban-count">${g.notes.length}</span></h3>
+        <h3 class="kanban-column-header" data-role="open-folder" data-folder="${g.category}" style="cursor:pointer">
+          <span class="kanban-title">${escapeHtml(categoryLabel(g.category))}</span>
+          <span class="kanban-count">${g.notes.length}</span>
+        </h3>
+
         <div class="kanban-cards">
           ${g.notes.map(n => noteArticleHtml(n)).join("")}
         </div>
@@ -1760,7 +1768,6 @@ async function deleteAccount() {
     showToast(t("apiErrorPasswordRequiredDeletion"), { variant: "error", duration: 5000 });
     return;
   }
-  if (!window.confirm(t("deleteAccountConfirm"))) return;
   try {
     await api("/api/account/delete", {
       method: "POST",
@@ -1924,13 +1931,19 @@ if (createPanel) {
 
 function onFolderPick(event) {
   const folderTrigger = event.target.closest('[data-role="open-folder"]');
-  if (!folderTrigger || !folderTrigger.dataset.folder) return false;
+  if (!folderTrigger) return false;
+  const folder = folderTrigger.dataset.folder;
+  if (!folder) return false;
+  
   event.preventDefault();
-  activeFolder = activeFolder === folderTrigger.dataset.folder ? "" : folderTrigger.dataset.folder;
+  event.stopPropagation();
+  
+  activeFolder = (activeFolder === folder) ? "" : folder;
   renderSignature = "";
   renderNotes();
   return true;
 }
+
 
 if (folderTreeEl) {
   folderTreeEl.addEventListener("click", (event) => {
