@@ -376,6 +376,11 @@ app.get("/api/public-link", (req, res) => {
   return res.json(link);
 });
 
+app.get("/api/stats", (req, res) => {
+  const db = getData();
+  return res.json({ userCount: Array.isArray(db.users) ? db.users.length : 0 });
+});
+
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "Not found" });
 });

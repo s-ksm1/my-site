@@ -34,6 +34,7 @@
           <button id="login-btn" type="button"></button>
         </div>
         <p id="auth-error" class="error"></p>
+        <p class="auth-user-stats" id="auth-user-stats" aria-live="polite"></p>
         <small class="creator-signature" id="creator-signature"></small>
       </div>
     </div>
@@ -68,6 +69,10 @@
           <div class="sidebar-tree-wrap" id="sidebar-tree-section">
             <div class="sidebar-tree-head" id="sidebar-folders-heading"></div>
             <p class="sidebar-tree-hint" id="sidebar-tree-hint"></p>
+            <details class="sidebar-about" id="sidebar-about">
+              <summary class="sidebar-about-summary" id="about-app-summary"></summary>
+              <div class="sidebar-about-body" id="about-app-body"></div>
+            </details>
             <nav class="folder-tree" id="folder-tree" aria-label=""></nav>
           </div>
           <section class="panel-block sidebar-settings" data-mobile-panel="settings">
@@ -159,22 +164,24 @@
 
         <section class="card grow">
           <div class="toolbar" id="notes-toolbar">
-            <input id="search" type="text" placeholder="" />
-            <small id="active-folder-label"></small>
-            <button id="clear-folder-btn" type="button" class="hidden"></button>
-            <small id="sync-status" aria-live="polite"></small>
+            <div class="toolbar-primary">
+              <input id="search" type="text" placeholder="" />
+              <small id="active-folder-label"></small>
+              <button id="clear-folder-btn" type="button" class="hidden"></button>
+              <small id="sync-status" aria-live="polite"></small>
+            </div>
+            <button type="button" id="toolbar-new-note" class="toolbar-new-note hidden"></button>
           </div>
           <div class="main-column">
             <section class="create-column panel-block" data-mobile-panel="create" id="create-panel">
               <h3 id="create-note-heading"></h3>
-              <input id="note-title" type="text" placeholder="" />
               <select id="note-category">
                 <option value="projects"></option>
                 <option value="areas"></option>
                 <option value="resources" selected></option>
                 <option value="archives"></option>
               </select>
-              <textarea id="note-content" placeholder=""></textarea>
+              <textarea id="note-combined" class="note-combined-editor" rows="8" spellcheck="true"></textarea>
               <button id="create-note-btn" type="button"></button>
             </section>
             <div class="notes-main" id="notes-main" data-mobile-panel="notes">

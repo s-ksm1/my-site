@@ -18,10 +18,10 @@ const registerBtn = document.getElementById("register-btn");
 const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 
-const noteTitle = document.getElementById("note-title");
 const noteCategory = document.getElementById("note-category");
-const noteContent = document.getElementById("note-content");
+const noteCombined = document.getElementById("note-combined");
 const createNoteBtn = document.getElementById("create-note-btn");
+const toolbarNewNote = document.getElementById("toolbar-new-note");
 const notesWrap = document.getElementById("notes");
 const searchInput = document.getElementById("search");
 const activeFolderLabel = document.getElementById("active-folder-label");
@@ -154,8 +154,15 @@ const I18N = {
     importSettings: "Импорт настроек",
     searchPlaceholder: "Поиск заметок...",
     searchFocusShortcut: "Быстрый фокус: Ctrl+K или /",
-    noteTitlePlaceholder: "Заголовок",
-    noteContentPlaceholder: "Запишите мысль...",
+    noteCombinedPlaceholder:
+      "Первая строка — заголовок, ниже — текст (как в Obsidian / Notion).",
+    toolbarNewNote: "＋ Новая заметка в «{folder}»",
+    aboutAppSummary: "Зачем этот сервис",
+    aboutAppDetail:
+      "Это личный PARA-блокнот в браузере: проекты, области, ресурсы и архив в одном месте, с поиском и синхронизацией между устройствами.\n\nВместо хаоса вкладок вы складываете мысли по смыслу: в «Проектах» — то, над чем работаете сейчас; в «Областях» — зоны ответственности без жёсткого дедлайна; в «Ресурсах» — справки, ссылки, идеи; в «Архиве» — завершённое и неактуальное, чтобы не мешало фокусу.\n\nМинимум отвлечений: быстрый ввод, папки PARA, резерв настроек и live-синхронизация при работе онлайн. Данные привязаны к вашему аккаунту.\n\nЕсли вам важны ясность и спокойный ритм вместо шума — это инструмент под ваш «второй мозг».",
+    authUserCount: "Уже зарегистрировано пользователей: {n}",
+    emptyNoteCombined: "Введите заголовок или текст заметки.",
+    untitledNote: "Без названия",
     issuePlaceholder: "Опишите проблему",
     displayNamePlaceholder: "Отображаемое имя",
     appTitlePlaceholder: "Название приложения",
@@ -287,8 +294,14 @@ const I18N = {
     importSettings: "Import settings",
     searchPlaceholder: "Search notes...",
     searchFocusShortcut: "Focus search: Ctrl+K or /",
-    noteTitlePlaceholder: "Title",
-    noteContentPlaceholder: "Write your thought...",
+    noteCombinedPlaceholder: "First line is the title; below is the note body (Obsidian / Notion style).",
+    toolbarNewNote: "＋ New note in “{folder}”",
+    aboutAppSummary: "What this app is for",
+    aboutAppDetail:
+      "A personal PARA notebook in the browser — Projects, Areas, Resources, and Archives in one place, with search and sync across your devices.\n\nInstead of a mess of tabs, you file thoughts by meaning: Projects for active work, Areas for ongoing responsibilities, Resources for references and ideas, and Archives for finished or inactive items so they do not steal focus.\n\nLow-friction capture, PARA folders, settings export, and live sync when you are online. Your data belongs to your account.\n\nIf you value clarity and a calm pace over noise, this is built as a second brain you actually use.",
+    authUserCount: "People registered so far: {n}",
+    emptyNoteCombined: "Add a title or some note text.",
+    untitledNote: "Untitled",
     issuePlaceholder: "Describe the issue",
     displayNamePlaceholder: "Display name",
     appTitlePlaceholder: "App title",
@@ -420,8 +433,15 @@ const I18N = {
     importSettings: "Sozlamalarni import",
     searchPlaceholder: "Eslatmalarni qidirish...",
     searchFocusShortcut: "Ctrl+K yoki / — qidiruv",
-    noteTitlePlaceholder: "Sarlavha",
-    noteContentPlaceholder: "Fikringizni yozing...",
+    noteCombinedPlaceholder:
+      "Birinchi qator — sarlavha, pastroqda matn (Obsidian / Notion uslubi).",
+    toolbarNewNote: "＋ «{folder}» da yangi eslatma",
+    aboutAppSummary: "Bu servis nima uchun",
+    aboutAppDetail:
+      "Bu shaxsiy PARA daftarchasi: loyihalar, sohalar, resurslar va arxiv bir joyda, qidiruv va qurilmalar orasida sinxronlash bilan.\n\nCheksiz varaqlar o‘rniga fikrlarni mazmun bo‘yicha joylaysiz: «Loyihalar» — hozir ishlayotganingiz; «Sohalar» — mas’uliyat zonasi; «Resurslar» — ma’lumot va g‘oyalar; «Arxiv» — tugagan yoki hozircha keraksiz.\n\nTez yozish, PARA papkalari, sozlamalarni eksport va onlaynda live-sinxron. Ma’lumotlar hisobingizga bog‘langan.\n\nAniqlik va tinch ritm muhim bo‘lsa — bu ikkinchi miya uchun vosita.",
+    authUserCount: "Hozircha ro‘yxatdan o‘tganlar: {n}",
+    emptyNoteCombined: "Sarlavha yoki matn kiriting.",
+    untitledNote: "Nomsiz",
     issuePlaceholder: "Muammoni yozing",
     displayNamePlaceholder: "Ko'rinadigan ism",
     appTitlePlaceholder: "Ilova nomi",
@@ -594,6 +614,59 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function joinTitleContent(title, content) {
+  const tit = String(title ?? "").replace(/\r\n/g, "\n");
+  const con = String(content ?? "").replace(/\r\n/g, "\n");
+  if (!con.trim()) return tit;
+  return `${tit}\n${con}`;
+}
+
+function splitTitleContent(combined) {
+  const untitled = t("untitledNote");
+  const raw = String(combined ?? "").replace(/\r\n/g, "\n").trim();
+  if (!raw) return { title: untitled, content: "" };
+  const idx = raw.indexOf("\n");
+  if (idx === -1) {
+    const single = raw.slice(0, 150).trim();
+    return { title: single || untitled, content: "" };
+  }
+  const title = raw.slice(0, idx).trim().slice(0, 150) || untitled;
+  const content = raw.slice(idx + 1).trimEnd();
+  return { title, content };
+}
+
+function renderAboutBody() {
+  const bodyEl = document.getElementById("about-app-body");
+  const summaryEl = document.getElementById("about-app-summary");
+  if (summaryEl) summaryEl.textContent = t("aboutAppSummary");
+  if (!bodyEl) return;
+  bodyEl.textContent = "";
+  const raw = t("aboutAppDetail");
+  raw.split(/\n\n+/).forEach((para) => {
+    const trimmed = para.trim();
+    if (!trimmed) return;
+    const p = document.createElement("p");
+    p.textContent = trimmed;
+    bodyEl.appendChild(p);
+  });
+}
+
+async function loadAuthStats() {
+  const el = document.getElementById("auth-user-stats");
+  if (!el) return;
+  el.dataset.loading = "1";
+  try {
+    const res = await fetch("/api/stats");
+    const data = await res.json().catch(() => ({}));
+    const n = Number(data.userCount);
+    el.textContent = Number.isFinite(n) ? t("authUserCount").replace(/\{n\}/g, String(n)) : "";
+  } catch {
+    el.textContent = "";
+  } finally {
+    delete el.dataset.loading;
+  }
 }
 
 let toastHideTimer = null;
@@ -899,8 +972,7 @@ function applyLanguage() {
     searchInput.placeholder = t("searchPlaceholder");
     searchInput.title = t("searchFocusShortcut");
   }
-  if (noteTitle) noteTitle.placeholder = t("noteTitlePlaceholder");
-  if (noteContent) noteContent.placeholder = t("noteContentPlaceholder");
+  if (noteCombined) noteCombined.placeholder = t("noteCombinedPlaceholder");
   if (issueText) issueText.placeholder = t("issuePlaceholder");
   if (displayNameInput) displayNameInput.placeholder = t("displayNamePlaceholder");
   if (appTitleInput) appTitleInput.placeholder = t("appTitlePlaceholder");
@@ -916,6 +988,8 @@ function applyLanguage() {
   updateAppearanceSelectLabels();
   renderPrettyLink();
   refreshSegmentToggleLabels();
+  renderAboutBody();
+  loadAuthStats();
   const offlineBanner = document.getElementById("offline-banner");
   if (offlineBanner && !offlineBanner.classList.contains("hidden")) {
     offlineBanner.textContent = t("toastOffline");
@@ -954,6 +1028,21 @@ function setMobilePanel(nextPanel) {
   [mobileNavNotes, mobileNavCreate, mobileNavSettings].forEach((btn) => {
     if (!btn) return;
     btn.classList.toggle("active", btn.dataset.mobileTarget === nextPanel);
+  });
+}
+
+function focusNewNoteComposer() {
+  if (!activeFolder || !noteCategory || !noteCombined) return;
+  noteCategory.value = activeFolder;
+  const compact = window.matchMedia("(max-width: 900px)").matches;
+  if (compact) {
+    setMobilePanel("create");
+  }
+  createPanel?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  requestAnimationFrame(() => {
+    noteCombined.focus({ preventScroll: true });
+    const len = noteCombined.value.length;
+    noteCombined.setSelectionRange(len, len);
   });
 }
 
@@ -1233,11 +1322,11 @@ function matchSearch(n, text) {
 }
 
 function noteArticleHtml(n) {
+  const block = escapeHtml(joinTitleContent(n.title, n.content));
   return `
     <article class="note" data-id="${n.id}">
-      <input data-role="title" class="note-title-input" value="${escapeHtml(n.title)}" />
+      <textarea data-role="block" class="note-block-editor" rows="8" spellcheck="true">${block}</textarea>
       <div class="meta">${categoryLabel(n.category)} — ${formatDate(n.updatedAt)}</div>
-      <textarea data-role="content">${escapeHtml(n.content)}</textarea>
       <div class="note-actions">
         <select data-role="category">
           ${["projects", "areas", "resources", "archives"]
@@ -1277,6 +1366,13 @@ function renderNotes() {
   }
   if (clearFolderBtn) {
     clearFolderBtn.classList.toggle("hidden", !activeFolder);
+  }
+  if (toolbarNewNote) {
+    toolbarNewNote.classList.toggle("hidden", !activeFolder);
+    if (activeFolder) {
+      const folderLabel = categorySidebarLabel(activeFolder);
+      toolbarNewNote.textContent = t("toolbarNewNote").replace(/\{folder\}/g, folderLabel);
+    }
   }
 
   if (folderTreeEl) {
@@ -1448,10 +1544,16 @@ async function doAuth(mode) {
 
 async function createNote() {
   try {
+    const combined = noteCombined ? noteCombined.value : "";
+    if (!String(combined || "").trim()) {
+      showToast(t("emptyNoteCombined"), { variant: "error", duration: 4000 });
+      return;
+    }
+    const { title, content } = splitTitleContent(combined);
     const payload = {
-      title: noteTitle.value.trim(),
+      title,
       category: noteCategory.value,
-      content: noteContent.value
+      content
     };
     const data = await api("/api/notes", {
       method: "POST",
@@ -1462,8 +1564,7 @@ async function createNote() {
     activeFolder = newNote.category;
     renderSignature = "";
     renderNotes();
-    noteTitle.value = "";
-    noteContent.value = "";
+    if (noteCombined) noteCombined.value = "";
     requestAnimationFrame(() => {
       const el = notesWrap.querySelector(`article.note[data-id="${newNote.id}"]`);
       if (el) {
@@ -1580,10 +1681,12 @@ if (logoutBtn) {
     renderNotes();
     if (syncTimer) clearInterval(syncTimer);
     stopLiveEvents();
+    loadAuthStats();
   });
 }
 if (deleteAccountBtn) deleteAccountBtn.addEventListener("click", deleteAccount);
 if (createNoteBtn) createNoteBtn.addEventListener("click", createNote);
+if (toolbarNewNote) toolbarNewNote.addEventListener("click", () => focusNewNoteComposer());
 const onSearchInput = debounce(() => {
   searchQuery = searchInput.value;
   renderNotes();
@@ -1731,8 +1834,9 @@ notesWrap.addEventListener("click", async (event) => {
   const article = target.closest(".note");
   if (!article) return;
   const id = article.dataset.id;
-  const title = article.querySelector('[data-role="title"]').value;
-  const content = article.querySelector('[data-role="content"]').value;
+  const blockEl = article.querySelector('[data-role="block"]');
+  const combined = blockEl ? blockEl.value : "";
+  const { title, content } = splitTitleContent(combined);
   const category = article.querySelector('[data-role="category"]').value;
 
   if (target.dataset.role === "save") {
