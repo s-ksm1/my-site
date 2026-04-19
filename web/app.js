@@ -160,6 +160,7 @@ const I18N = {
     noteTitlePlaceholder: "Заголовок",
     noteBodyPlaceholder: "Текст заметки…",
     toolbarNewNote: "＋ Новая заметка в «{folder}»",
+    toolbarNewNoteGeneric: "＋ Создать заметку",
     aboutAppSummary: "Зачем этот сервис",
     aboutAppDetail:
       "Это личный PARA-блокнот в браузере: проекты, области, ресурсы и архив в одном месте, с поиском и синхронизацией между устройствами.\n\nВместо хаоса вкладок вы складываете мысли по смыслу: в «Проектах» — то, над чем работаете сейчас; в «Областях» — зоны ответственности без жёсткого дедлайна; в «Ресурсах» — справки, ссылки, идеи; в «Архиве» — завершённое и неактуальное, чтобы не мешало фокусу.\n\nМинимум отвлечений: быстрый ввод, папки PARA, резерв настроек и live-синхронизация при работе онлайн. Данные привязаны к вашему аккаунту.\n\nЕсли вам важны ясность и спокойный ритм вместо шума — это инструмент под ваш «второй мозг».",
@@ -300,6 +301,7 @@ const I18N = {
     noteTitlePlaceholder: "Title",
     noteBodyPlaceholder: "Note body…",
     toolbarNewNote: "＋ New note in “{folder}”",
+    toolbarNewNoteGeneric: "＋ Create note",
     aboutAppSummary: "What this app is for",
     aboutAppDetail:
       "A personal PARA notebook in the browser — Projects, Areas, Resources, and Archives in one place, with search and sync across your devices.\n\nInstead of a mess of tabs, you file thoughts by meaning: Projects for active work, Areas for ongoing responsibilities, Resources for references and ideas, and Archives for finished or inactive items so they do not steal focus.\n\nLow-friction capture, PARA folders, settings export, and live sync when you are online. Your data belongs to your account.\n\nIf you value clarity and a calm pace over noise, this is built as a second brain you actually use.",
@@ -440,6 +442,7 @@ const I18N = {
     noteTitlePlaceholder: "Sarlavha",
     noteBodyPlaceholder: "Eslatma matni…",
     toolbarNewNote: "＋ «{folder}» da yangi eslatma",
+    toolbarNewNoteGeneric: "＋ Eslatma yaratish",
     aboutAppSummary: "Bu servis nima uchun",
     aboutAppDetail:
       "Bu shaxsiy PARA daftarchasi: loyihalar, sohalar, resurslar va arxiv bir joyda, qidiruv va qurilmalar orasida sinxronlash bilan.\n\nCheksiz varaqlar o‘rniga fikrlarni mazmun bo‘yicha joylaysiz: «Loyihalar» — hozir ishlayotganingiz; «Sohalar» — mas’uliyat zonasi; «Resurslar» — ma’lumot va g‘oyalar; «Arxiv» — tugagan yoki hozircha keraksiz.\n\nTez yozish, PARA papkalari, sozlamalarni eksport va onlaynda live-sinxron. Ma’lumotlar hisobingizga bog‘langan.\n\nAniqlik va tinch ritm muhim bo‘lsa — bu ikkinchi miya uchun vosita.",
@@ -1459,10 +1462,13 @@ function renderNotes() {
     clearFolderBtn.classList.toggle("hidden", !activeFolder);
   }
   if (toolbarNewNote) {
-    toolbarNewNote.classList.toggle("hidden", !activeFolder);
+    // Show button always when logged in
+    toolbarNewNote.classList.remove("hidden");
     if (activeFolder) {
       const folderLabel = categorySidebarLabel(activeFolder);
       toolbarNewNote.textContent = t("toolbarNewNote").replace(/\{folder\}/g, folderLabel);
+    } else {
+      toolbarNewNote.textContent = t("toolbarNewNoteGeneric");
     }
   }
 

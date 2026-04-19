@@ -31,6 +31,11 @@
         <section class="auth-pitch" id="auth-pitch" aria-labelledby="auth-pitch-title">
           <p class="auth-pitch__title" id="auth-pitch-title" role="heading" aria-level="2"></p>
           <p class="auth-pitch__body" id="auth-pitch-body"></p>
+          <div class="auth-security-badges">
+            <span class="security-badge">🔒 AES-256 Encryption</span>
+            <span class="security-badge">🛡️ JWT Protected</span>
+            <span class="security-badge">✨ No Tracking</span>
+          </div>
         </section>
         <h1 id="auth-title"></h1>
         <p id="auth-subtitle"></p>
@@ -41,10 +46,13 @@
           <button id="login-btn" type="button"></button>
         </div>
         <p id="auth-error" class="error"></p>
-        <p class="auth-user-stats" id="auth-user-stats" aria-live="polite"></p>
-        <small class="creator-signature" id="creator-signature"></small>
+        <div class="auth-footer">
+          <p class="auth-user-stats" id="auth-user-stats" aria-live="polite"></p>
+          <small class="creator-signature" id="creator-signature"></small>
+        </div>
       </div>
     </div>
+
 
     <div id="app-view" class="hidden">
       <header>
@@ -168,7 +176,12 @@
               </div>
             </details>
           </section>
+          <div class="sidebar-security-indicator">
+            <span class="indicator-dot"></span>
+            <span id="security-status-text">Encrypted & Secure</span>
+          </div>
         </aside>
+
 
         <section class="main-content-area grow">
           <div class="toolbar" id="notes-toolbar">
