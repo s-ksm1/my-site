@@ -1555,3 +1555,114 @@ textarea {
   }
 }
 
+/* Kanban Board Styles */
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  align-items: flex-start;
+  min-height: 400px;
+}
+
+.kanban-column {
+  flex: 1 1 280px;
+  min-width: 260px;
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.kanban-column.drag-over {
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  border: 1px dashed var(--accent);
+}
+
+.kanban-column-header {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  color: var(--text);
+}
+
+.kanban-count {
+  font-size: 11px;
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: var(--muted);
+}
+
+.kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 50px;
+}
+
+/* Draggable Notes */
+.note[draggable="true"] {
+  cursor: grab;
+}
+
+.note[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.note.dragging {
+  opacity: 0.5;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  transform: scale(1.02);
+}
+
+/* UI Redesign Tweaks */
+:root {
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+.card {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04), var(--shadow-line);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+:root[data-theme="dark"] .card {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.note {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+}
+
+.note:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text) 20%, transparent);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+}

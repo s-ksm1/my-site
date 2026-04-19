@@ -1397,7 +1397,7 @@ async function flushNoteAutosave(article, options = {}) {
 
 function noteArticleHtml(n) {
   return `
-    <article class="note" data-id="${n.id}">
+    <article class="note" data-id="${n.id}" draggable="true">
       <div class="note-editor-fusion">
         <input type="text" data-role="title" class="note-fusion-title" maxlength="150" spellcheck="true" value="${escapeHtml(n.title)}" />
         <textarea data-role="content" class="note-fusion-body" rows="7" spellcheck="true">${escapeHtml(n.content)}</textarea>
@@ -1473,8 +1473,25 @@ function renderNotes() {
   }
 
   if (!activeFolder) {
-    resetNotesHtml(`<p class="folder-hint">${escapeHtml(t("chooseFolder"))}</p>`);
+    notesWrap.classList.add("kanban-board");
+    const boardHtml = groups.map(g => `
+      <div class="kanban-column" data-category="${g.category}">
+        <h3 class="kanban-column-header">${escapeHtml(categoryLabel(g.category))} <span class="kanban-count">${g.notes.length}</span></h3>
+        <div class="kanban-cards">
+          ${g.notes.map(n => noteArticleHtml(n)).join("")}
+        </div>
+      </div>
+    `).join("");
+    resetNotesHtml(boardHtml);
+    filtered.forEach((n) => {
+      noteLastSavedSnap.set(
+        n.id,
+        snapshotFromPayload({ title: n.title, content: n.content, category: n.category })
+      );
+    });
     return;
+  } else {
+    notesWrap.classList.remove("kanban-board");
   }
 
   const inFolder = filtered.filter((n) => n.category === activeFolder);
@@ -1923,6 +1940,76 @@ notesWrap.addEventListener("focusout", (event) => {
   const next = event.relatedTarget;
   if (next && article.contains(next)) return;
   flushNoteAutosave(article);
+});
+
+notesWrap.addEventListener("dragstart", (event) => {
+  const article = event.target.closest(".note");
+  if (!article) return;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", article.dataset.id);
+  article.classList.add("dragging");
+});
+
+notesWrap.addEventListener("dragend", (event) => {
+  const article = event.target.closest(".note");
+  if (article) article.classList.remove("dragging");
+  notesWrap.querySelectorAll(".kanban-column").forEach(col => col.classList.remove("drag-over"));
+});
+
+notesWrap.addEventListener("dragover", (event) => {
+  const col = event.target.closest(".kanban-column");
+  if (!col) return;
+  event.preventDefault(); // allow drop
+  col.classList.add("drag-over");
+});
+
+notesWrap.addEventListener("dragleave", (event) => {
+  const col = event.target.closest(".kanban-column");
+  if (!col) return;
+  if (!col.contains(event.relatedTarget)) {
+    col.classList.remove("drag-over");
+  }
+});
+
+notesWrap.addEventListener("drop", async (event) => {
+  const col = event.target.closest(".kanban-column");
+  if (!col) return;
+  event.preventDefault();
+  col.classList.remove("drag-over");
+  const noteId = event.dataTransfer.getData("text/plain");
+  const newCat = col.dataset.category;
+  if (!noteId || !newCat) return;
+
+  const noteToUpdate = notes.find(n => n.id === noteId);
+  if (!noteToUpdate || noteToUpdate.category === newCat) return;
+
+  // Optimistic update
+  noteToUpdate.category = newCat;
+  renderSignature = "";
+  renderNotes();
+
+  // Save to backend
+  try {
+    const data = await api(`/api/notes/${noteId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        title: noteToUpdate.title,
+        content: noteToUpdate.content,
+        category: newCat
+      })
+    });
+    // Update frontend object with server timestamps
+    const idx = notes.findIndex(n => n.id === noteId);
+    if (idx !== -1) notes[idx] = data.note;
+    
+    noteLastSavedSnap.set(noteId, snapshotFromPayload({
+      title: data.note.title,
+      content: data.note.content,
+      category: newCat
+    }));
+  } catch (error) {
+    showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
+  }
 });
 
 notesWrap.addEventListener("click", async (event) => {
