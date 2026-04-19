@@ -2042,6 +2042,7 @@ notesWrap.addEventListener("click", async (event) => {
   const id = article.dataset.id;
 
   if (target.dataset.role === "save") {
+    event.stopPropagation();
     try {
       await flushNoteAutosave(article, { force: true });
     } catch (error) {
@@ -2051,6 +2052,7 @@ notesWrap.addEventListener("click", async (event) => {
   }
   
   if (target.dataset.role === "delete") {
+    event.stopPropagation();
     await deleteNoteWithUndo(id);
     return;
   }
@@ -2060,6 +2062,7 @@ notesWrap.addEventListener("click", async (event) => {
     openNotionEditor(id);
   }
 });
+
 
 
 // --- Notion-style Editor Logic ---
@@ -2087,58 +2090,65 @@ const notionBackBtn = document.getElementById("notion-back-btn");
 const notionBackdrop = document.getElementById("notion-editor-backdrop");
 
 async function openNotionEditor(noteId) {
+  if (notionOverlay && !notionOverlay.classList.contains("hidden")) return;
+  
   const note = notes.find(n => n.id === noteId);
   if (!note) return;
 
-  currentEditingNoteId = noteId;
-  notionTitle.value = note.title === t("untitledNote") ? "" : note.title;
-  
-  // Set Icon
-  const emojiEl = document.getElementById("notion-emoji");
-  if (emojiEl) emojiEl.textContent = note.icon || "📄";
-
-  // Set Cover
-  const coverArea = document.getElementById("notion-cover-area");
-  if (coverArea) {
-    if (note.cover) {
-      coverArea.style.backgroundImage = `url(${note.cover})`;
-    } else {
-      coverArea.style.backgroundImage = ''; // Use default CSS gradient
-    }
-  }
-
-  // Render Blocks
-  notionBlocks.innerHTML = "";
-  const content = note.content || "";
-  
-  // Simple block parsing: split by double newlines or use tags if present
-  let blocksData = [];
   try {
-    blocksData = JSON.parse(content);
-    if (!Array.isArray(blocksData)) throw new Error();
-  } catch (e) {
-    // Fallback for plain text
-    blocksData = content.split('\n').map(line => ({
-      type: 'text',
-      content: line
-    }));
+    currentEditingNoteId = noteId;
+    notionTitle.value = note.title === t("untitledNote") ? "" : note.title;
+    
+    // Set Icon
+    const emojiEl = document.getElementById("notion-emoji");
+    if (emojiEl) emojiEl.textContent = note.icon || "📄";
+
+    // Set Cover
+    const coverArea = document.getElementById("notion-cover-area");
+    if (coverArea) {
+      if (note.cover) {
+        coverArea.style.backgroundImage = `url(${note.cover})`;
+      } else {
+        coverArea.style.backgroundImage = '';
+      }
+    }
+
+    // Render Blocks
+    notionBlocks.innerHTML = "";
+    const content = note.content || "";
+    
+    let blocksData = [];
+    try {
+      blocksData = JSON.parse(content);
+      if (!Array.isArray(blocksData)) throw new Error();
+    } catch (e) {
+      blocksData = String(content).split('\n').map(line => ({
+        type: 'text',
+        content: line
+      }));
+    }
+
+    if (blocksData.length === 0) {
+      blocksData = [{ type: 'text', content: '' }];
+    }
+
+    blocksData.forEach(data => {
+      addBlock(data.type, data.content);
+    });
+
+    notionOverlay.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    notionStatus.textContent = "Saved";
+  } catch (err) {
+    console.error("Failed to open Notion editor:", err);
+    showToast("Error opening editor", { variant: "error" });
+    closeNotionEditor();
   }
-
-  if (blocksData.length === 0) {
-    blocksData = [{ type: 'text', content: '' }];
-  }
-
-  blocksData.forEach(data => {
-    addBlock(data.type, data.content);
-  });
-
-  notionOverlay.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-  
-  notionStatus.textContent = "Saved";
 }
 
+
 function closeNotionEditor() {
+  if (!currentEditingNoteId) return;
   saveCurrentNote();
   notionOverlay.classList.add("hidden");
   document.body.style.overflow = "";
@@ -2246,10 +2256,16 @@ function handleBlockInput(e) {
 
 function showSlashMenu(block) {
   const selection = window.getSelection();
-  if (!selection.rangeCount) return;
+  if (!selection || !selection.rangeCount) return;
   const range = selection.getRangeAt(0);
   const rect = range.getBoundingClientRect();
   
+  // Safety check for invalid rects
+  if (rect.width === 0 && rect.height === 0) {
+    hideSlashMenu();
+    return;
+  }
+
   lastSlashRange = range.cloneRange();
   
   slashMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
@@ -2287,12 +2303,14 @@ function renderSlashMenu() {
 function applySelectedSlashCommand() {
   const opt = NOTION_BLOCK_TYPES[selectedSlashIndex];
   const selection = window.getSelection();
-  const block = selection.anchorNode.parentElement.closest(".notion-block");
+  if (!selection || !selection.anchorNode) return;
+  
+  const block = selection.anchorNode.parentElement ? selection.anchorNode.parentElement.closest(".notion-block") : null;
   
   if (block) {
     block.dataset.type = opt.type;
     block.dataset.placeholder = opt.label;
-    block.textContent = "";
+    block.innerHTML = ""; // Use innerHTML for consistency
     block.focus();
   }
   
