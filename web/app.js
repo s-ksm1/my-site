@@ -128,6 +128,7 @@ const I18N = {
     exportSettings: "Экспорт настроек",
     importSettings: "Импорт настроек",
     searchPlaceholder: "Поиск заметок...",
+    searchFocusShortcut: "Быстрый фокус: Ctrl+K или /",
     noteTitlePlaceholder: "Заголовок",
     noteContentPlaceholder: "Запишите мысль...",
     issuePlaceholder: "Опишите проблему",
@@ -147,6 +148,14 @@ const I18N = {
     imported: "Настройки импортированы.",
     importError: "Не удалось импортировать JSON настроек.",
     issueSent: "Отправлено.",
+    invalidEmail: "Введите корректный email.",
+    undo: "Отменить",
+    toastNoteDeleted: "Заметка удалена",
+    toastRestored: "Заметка восстановлена",
+    toastOffline: "Нет подключения к сети",
+    toastOnline: "Подключение восстановлено",
+    sessionExpired: "Сессия недействительна. Войдите снова.",
+    skipToContent: "К основному содержимому",
     syncing: "Синхронизация...",
     syncError: "Ошибка синхронизации",
     liveConnected: "Live-синхронизация подключена",
@@ -197,6 +206,7 @@ const I18N = {
     exportSettings: "Export settings",
     importSettings: "Import settings",
     searchPlaceholder: "Search notes...",
+    searchFocusShortcut: "Focus search: Ctrl+K or /",
     noteTitlePlaceholder: "Title",
     noteContentPlaceholder: "Write your thought...",
     issuePlaceholder: "Describe the issue",
@@ -216,6 +226,14 @@ const I18N = {
     imported: "Settings imported.",
     importError: "Could not import settings JSON.",
     issueSent: "Issue sent.",
+    invalidEmail: "Enter a valid email address.",
+    undo: "Undo",
+    toastNoteDeleted: "Note deleted",
+    toastRestored: "Note restored",
+    toastOffline: "You are offline",
+    toastOnline: "Back online",
+    sessionExpired: "Session expired. Please sign in again.",
+    skipToContent: "Skip to content",
     syncing: "Syncing...",
     syncError: "Sync error",
     liveConnected: "Live sync connected",
@@ -266,6 +284,7 @@ const I18N = {
     exportSettings: "Sozlamalarni eksport",
     importSettings: "Sozlamalarni import",
     searchPlaceholder: "Eslatmalarni qidirish...",
+    searchFocusShortcut: "Ctrl+K yoki / — qidiruv",
     noteTitlePlaceholder: "Sarlavha",
     noteContentPlaceholder: "Fikringizni yozing...",
     issuePlaceholder: "Muammoni yozing",
@@ -285,6 +304,14 @@ const I18N = {
     imported: "Sozlamalar import qilindi.",
     importError: "Sozlamalar JSON import bo'lmadi.",
     issueSent: "Yuborildi.",
+    invalidEmail: "To'g'ri email kiriting.",
+    undo: "Bekor qilish",
+    toastNoteDeleted: "Eslatma o'chirildi",
+    toastRestored: "Eslatma tiklandi",
+    toastOffline: "Tarmoq yo'q",
+    toastOnline: "Yana onlayn",
+    sessionExpired: "Sessiya tugadi. Qayta kiring.",
+    skipToContent: "Asosiy qismga",
     syncing: "Sinxronlash...",
     syncError: "Sinxronlash xatosi",
     liveConnected: "Live sinxronlash ulandi",
@@ -307,6 +334,56 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+let toastHideTimer = null;
+
+function showToast(message, options = {}) {
+  const host = document.getElementById("toast-host");
+  if (!host || !message) return;
+  const { variant = "default", duration = 4200, actionLabel, onAction } = options;
+  host.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = `toast toast--${variant}`;
+  wrap.setAttribute("role", "status");
+  const msg = document.createElement("p");
+  msg.className = "toast__msg";
+  msg.textContent = message;
+  wrap.appendChild(msg);
+  if (actionLabel && typeof onAction === "function") {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "toast__action";
+    btn.textContent = actionLabel;
+    btn.addEventListener("click", () => {
+      if (toastHideTimer) clearTimeout(toastHideTimer);
+      toastHideTimer = null;
+      onAction();
+      host.innerHTML = "";
+    });
+    wrap.appendChild(btn);
+  }
+  host.appendChild(wrap);
+  if (toastHideTimer) clearTimeout(toastHideTimer);
+  toastHideTimer = setTimeout(() => {
+    host.innerHTML = "";
+    toastHideTimer = null;
+  }, duration);
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function updateMetaThemeColor() {
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    document.head.appendChild(meta);
+  }
+  const resolved = document.documentElement.getAttribute("data-theme") === "dark" ? "#0d1117" : "#ffffff";
+  meta.setAttribute("content", resolved);
 }
 
 function debounce(fn, delayMs) {
@@ -529,6 +606,8 @@ function applyLanguage() {
     if (opts[1]) opts[1].textContent = t("sidebarOptNarrow");
   }
   if (authSubtitle) authSubtitle.textContent = t("authSubtitle");
+  const skipLink = document.getElementById("skip-to-content");
+  if (skipLink) skipLink.textContent = t("skipToContent");
   if (registerBtn) registerBtn.textContent = t("register");
   if (loginBtn) loginBtn.textContent = t("login");
   if (logoutBtn) logoutBtn.textContent = t("logout");
@@ -546,7 +625,10 @@ function applyLanguage() {
   if (mobileNavNotes) mobileNavNotes.textContent = t("navNotes");
   if (mobileNavCreate) mobileNavCreate.textContent = t("navCreate");
   if (mobileNavSettings) mobileNavSettings.textContent = t("navSettings");
-  if (searchInput) searchInput.placeholder = t("searchPlaceholder");
+  if (searchInput) {
+    searchInput.placeholder = t("searchPlaceholder");
+    searchInput.title = t("searchFocusShortcut");
+  }
   if (noteTitle) noteTitle.placeholder = t("noteTitlePlaceholder");
   if (noteContent) noteContent.placeholder = t("noteContentPlaceholder");
   if (issueText) issueText.placeholder = t("issuePlaceholder");
@@ -786,16 +868,16 @@ async function copyPublicLink() {
   if (!publicSiteLinkInput) return;
   const value = publicSiteLinkInput.value.trim();
   if (!value) {
-    alert(t("noLink"));
+    showToast(t("noLink"), { variant: "error", duration: 5000 });
     return;
   }
   try {
     await navigator.clipboard.writeText(value);
-    alert(t("copied"));
+    showToast(t("copied"), { variant: "success", duration: 3200 });
   } catch (error) {
     publicSiteLinkInput.select();
     document.execCommand("copy");
-    alert(t("copied"));
+    showToast(t("copied"), { variant: "success", duration: 3200 });
   }
 }
 
@@ -823,6 +905,7 @@ function applyTheme(mode) {
   document.documentElement.setAttribute("data-theme", nextTheme);
   document.documentElement.setAttribute("data-theme-storage", mode);
   syncThemeSegmentsVisual(mode);
+  updateMetaThemeColor();
 }
 
 async function api(path, options = {}) {
@@ -845,6 +928,10 @@ function setView() {
   const authed = Boolean(token && user);
   authView.classList.toggle("hidden", authed);
   appView.classList.toggle("hidden", !authed);
+  const skipLink = document.getElementById("skip-to-content");
+  if (skipLink) {
+    skipLink.setAttribute("href", authed ? "#main-content" : "#auth-view");
+  }
   if (authed) {
     const avatar = getAvatarEmoji();
     const displayName = getDisplayName();
@@ -986,11 +1073,31 @@ function stopLiveEvents() {
   }
 }
 
-function startLiveEvents() {
+async function startLiveEvents() {
   stopLiveEvents();
   if (!token) return;
-  const url = `/api/events?token=${encodeURIComponent(token)}`;
-  const es = new EventSource(url);
+  let esToken;
+  try {
+    const res = await fetch("/api/events-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      }
+    });
+    if (!res.ok) throw new Error("events-token");
+    const body = await res.json().catch(() => ({}));
+    esToken = String(body.token || "").trim();
+    if (!esToken) throw new Error("events-token");
+  } catch (error) {
+    syncStatus.textContent = t("liveReconnect");
+    setTimeout(() => {
+      startLiveEvents();
+    }, 4000);
+    return;
+  }
+
+  const es = new EventSource(`/api/events?token=${encodeURIComponent(esToken)}`);
   eventsConnection = es;
 
   es.onmessage = (event) => {
@@ -1033,9 +1140,14 @@ function startLiveEvents() {
 
 async function doAuth(mode) {
   authError.textContent = "";
+  const email = emailInput.value.trim();
+  if (!isValidEmail(email)) {
+    authError.textContent = t("invalidEmail");
+    return;
+  }
   try {
     const payload = {
-      email: emailInput.value.trim(),
+      email,
       password: passwordInput.value
     };
     const data = await api(`/api/auth/${mode}`, {
@@ -1079,7 +1191,7 @@ async function createNote() {
       }
     });
   } catch (error) {
-    alert(error.message);
+    showToast(error.message, { variant: "error", duration: 5000 });
   }
 }
 
@@ -1106,6 +1218,34 @@ async function removeOne(id) {
   renderNotes();
 }
 
+async function restoreNote(id) {
+  const data = await api(`/api/notes/${id}/restore`, { method: "POST" });
+  notes = [data.note, ...notes.filter((n) => n.id !== id)];
+  renderSignature = "";
+  renderNotes();
+}
+
+async function deleteNoteWithUndo(id) {
+  try {
+    await removeOne(id);
+    showToast(t("toastNoteDeleted"), {
+      variant: "default",
+      duration: 9000,
+      actionLabel: t("undo"),
+      onAction: async () => {
+        try {
+          await restoreNote(id);
+          showToast(t("toastRestored"), { variant: "success", duration: 3200 });
+        } catch (error) {
+          showToast(error.message, { variant: "error", duration: 5000 });
+        }
+      }
+    });
+  } catch (error) {
+    showToast(error.message, { variant: "error", duration: 5000 });
+  }
+}
+
 async function sendIssue() {
   const message = issueText.value.trim();
   if (!message) return;
@@ -1115,9 +1255,9 @@ async function sendIssue() {
       body: JSON.stringify({ message })
     });
     issueText.value = "";
-    alert(t("issueSent"));
+    showToast(t("issueSent"), { variant: "success", duration: 4000 });
   } catch (error) {
-    alert(error.message);
+    showToast(error.message, { variant: "error", duration: 5000 });
   }
 }
 
@@ -1231,9 +1371,9 @@ if (importSettingsFile) {
       const text = await file.text();
       const parsed = JSON.parse(text);
       applyImportedSettings(parsed);
-      alert(t("imported"));
+      showToast(t("imported"), { variant: "success", duration: 4000 });
     } catch (error) {
-      alert(t("importError"));
+      showToast(t("importError"), { variant: "error", duration: 5000 });
     } finally {
       importSettingsFile.value = "";
     }
@@ -1282,10 +1422,14 @@ notesWrap.addEventListener("click", async (event) => {
   const category = article.querySelector('[data-role="category"]').value;
 
   if (target.dataset.role === "save") {
-    await saveOne(id, title, content, category);
+    try {
+      await saveOne(id, title, content, category);
+    } catch (error) {
+      showToast(error.message, { variant: "error", duration: 5000 });
+    }
   }
   if (target.dataset.role === "delete") {
-    await removeOne(id);
+    await deleteNoteWithUndo(id);
   }
 });
 
@@ -1325,10 +1469,58 @@ async function boot() {
     startLiveEvents();
     sync();
   } catch (error) {
+    showToast(t("sessionExpired"), { variant: "error", duration: 6000 });
     clearAuth();
     setView();
   }
 }
 
+function bindGlobalUx() {
+  document.addEventListener("keydown", (event) => {
+    if (!searchInput || !appView || appView.classList.contains("hidden")) return;
+    const el = event.target;
+    const tag = el && el.tagName;
+    const inTextArea = tag === "TEXTAREA";
+    const inSelect = tag === "SELECT";
+    const inContentEditable = el && el.isContentEditable;
+    const inInput = tag === "INPUT";
+    const inSearch = inInput && el.id === "search";
+
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      searchInput.focus();
+      return;
+    }
+
+    if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      if (inTextArea || inSelect || inContentEditable) return;
+      if (inInput && !inSearch) return;
+      event.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+  });
+
+  const offlineBanner = document.getElementById("offline-banner");
+  const setOnline = () => {
+    if (!offlineBanner) return;
+    offlineBanner.classList.add("hidden");
+    offlineBanner.textContent = "";
+  };
+  const setOffline = () => {
+    if (!offlineBanner) return;
+    offlineBanner.textContent = t("toastOffline");
+    offlineBanner.classList.remove("hidden");
+  };
+  window.addEventListener("online", () => {
+    setOnline();
+    showToast(t("toastOnline"), { variant: "success", duration: 3000 });
+    if (token) sync();
+  });
+  window.addEventListener("offline", setOffline);
+  if (!navigator.onLine) setOffline();
+}
+
+bindGlobalUx();
 boot();
 

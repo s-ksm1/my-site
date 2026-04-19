@@ -84,7 +84,9 @@ After this, share the Render URL with friends. They can register/login directly 
 - Passwords are stored as secure hashes (`bcrypt`)
 - Optional encryption at rest for `server/data.json` and `server/issues.json`
 - Basic anti-bruteforce rate limiting for auth and feedback APIs
-- Security headers are enabled (no-store, nosniff, deny frame embedding)
+- Security headers are enabled (no-store, nosniff, deny frame embedding, CSP, Permissions-Policy)
+- Live updates use a **short-lived SSE token** (`POST /api/events-token` with Bearer; `EventSource` uses that token in the query string so the long-lived login JWT is not exposed there)
+- Soft-deleted notes can be **restored** via `POST /api/notes/:id/restore`
 
 Enable encryption at rest (recommended):
 
@@ -112,5 +114,8 @@ set JWT_SECRET=my_super_secret
 - `PUT /api/notes/:id`
 - `DELETE /api/notes/:id`
 - `GET /api/sync?since=<unix_ms>`
+- `POST /api/events-token` (Bearer) — short-lived token for `EventSource`
+- `GET /api/events?token=<sse_jwt>` (SSE)
+- `POST /api/notes/:id/restore`
 - `POST /api/feedback`
 

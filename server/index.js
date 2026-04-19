@@ -10,6 +10,16 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const HOST = process.env.HOST || (process.env.PORT ? "0.0.0.0" : process.env.ALLOW_LAN === "true" ? "0.0.0.0" : "127.0.0.1");
 const JWT_SECRET = process.env.JWT_SECRET || "change_this_secret";
+const TRUST_PROXY = String(process.env.TRUST_PROXY || "").toLowerCase() === "true" || process.env.TRUST_PROXY === "1";
+if (TRUST_PROXY) {
+  app.set("trust proxy", 1);
+}
+
+function asyncHandler(fn) {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
 const CATEGORIES = ["projects", "areas", "resources", "archives"];
 const liveClientsByUser = new Map();
 const authAttempts = new Map();
@@ -23,7 +33,21 @@ app.use(express.static(path.join(__dirname, "..", "web")));
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self'",
+      "img-src 'self' data:",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join("; ")
+  );
   res.setHeader("Cache-Control", "no-store");
   next();
 });
@@ -42,19 +66,37 @@ function safeUser(user) {
 
 function auth(req, res, next) {
   const header = req.headers.authorization || "";
-  const tokenFromHeader = header.startsWith("Bearer ") ? header.slice(7) : "";
-  const tokenFromQuery = String(req.query.token || "").trim();
-  const token = tokenFromHeader || tokenFromQuery;
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   if (!token) {
     return res.status(401).json({ error: "No token" });
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.typ === "sse") {
+      return res.status(401).json({ error: "Wrong token type" });
+    }
     req.user = payload;
     return next();
   } catch (error) {
     return res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+function authSse(req, res, next) {
+  const token = String(req.query.token || "").trim();
+  if (!token) {
+    return res.status(401).end();
+  }
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.typ !== "sse") {
+      return res.status(403).end();
+    }
+    req.user = { userId: payload.userId, email: payload.email };
+    return next();
+  } catch (error) {
+    return res.status(401).end();
   }
 }
 
@@ -71,7 +113,16 @@ function sendLiveEvent(userId, event, payload) {
   });
 }
 
-app.get("/api/events", auth, (req, res) => {
+app.post("/api/events-token", auth, (req, res) => {
+  const token = jwt.sign(
+    { userId: req.user.userId, email: req.user.email, typ: "sse" },
+    JWT_SECRET,
+    { expiresIn: "4m" }
+  );
+  return res.json({ token, expiresIn: 240 });
+});
+
+app.get("/api/events", authSse, (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -136,7 +187,7 @@ function getPublicLinkPayload() {
   }
 }
 
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", asyncHandler(async (req, res) => {
   if (checkRateLimit(req, res)) return;
   const email = String(req.body.email || "").trim().toLowerCase();
   const password = String(req.body.password || "");
@@ -163,9 +214,9 @@ app.post("/api/auth/register", async (req, res) => {
 
   const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
   return res.status(201).json({ token, user: safeUser(user) });
-});
+}));
 
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", asyncHandler(async (req, res) => {
   if (checkRateLimit(req, res)) return;
   const email = String(req.body.email || "").trim().toLowerCase();
   const password = String(req.body.password || "");
@@ -183,7 +234,7 @@ app.post("/api/auth/login", async (req, res) => {
 
   const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
   return res.json({ token, user: safeUser(user) });
-});
+}));
 
 app.get("/api/notes", auth, (req, res) => {
   const db = getData();
@@ -246,6 +297,19 @@ app.delete("/api/notes/:id", auth, (req, res) => {
   return res.json({ ok: true });
 });
 
+app.post("/api/notes/:id/restore", auth, (req, res) => {
+  const db = getData();
+  const note = db.notes.find((n) => n.id === req.params.id && n.userId === req.user.userId);
+  if (!note || !note.deletedAt) {
+    return res.status(404).json({ error: "Note not found" });
+  }
+  note.deletedAt = null;
+  note.updatedAt = Date.now();
+  saveData(db);
+  sendLiveEvent(req.user.userId, "note_changed", note);
+  return res.json({ note });
+});
+
 app.get("/api/sync", auth, (req, res) => {
   const since = Number(req.query.since || 0);
   const db = getData();
@@ -277,8 +341,24 @@ app.get("/api/public-link", (req, res) => {
   return res.json(link);
 });
 
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "web", "index.html"));
+});
+
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+  // eslint-disable-next-line no-console
+  console.error("[server]", err && err.stack ? err.stack : err);
+  if (req.path && String(req.path).startsWith("/api")) {
+    return res.status(500).json({ error: "Server error" });
+  }
+  return res.status(500).send("Server error");
 });
 
 app.listen(PORT, HOST, () => {

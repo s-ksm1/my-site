@@ -4,6 +4,9 @@
   "private": true,
   "description": "Second brain app with PARA, auth, and sync.",
   "main": "server/index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server/index.js"
   },

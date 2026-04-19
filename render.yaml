@@ -11,3 +11,5 @@ services:
         generateValue: true
       - key: APP_ENCRYPTION_KEY
         generateValue: true
+      - key: TRUST_PROXY
+        value: "true"
