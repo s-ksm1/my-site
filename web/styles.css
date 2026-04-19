@@ -1625,7 +1625,64 @@ textarea {
   transform: scale(1.02);
 }
 
-/* UI Redesign Tweaks */
+/* UI Redesign Tweaks - Minimalist / Notion / Apple Style */
+:root {
+  --radius: 10px;
+  --radius-sm: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bg: #f9f9fb !important;
+  --panel: #ffffff;
+  --panel-strong: #ffffff;
+  --sidebar-bg: transparent;
+  --border: rgba(0, 0, 0, 0.08);
+  --shadow-line: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="dark"] {
+  --bg: #1e1e1e !important;
+  --panel: #252526;
+  --panel-strong: #252526;
+  --sidebar-bg: transparent;
+  --border: rgba(255, 255, 255, 0.1);
+  --shadow-line: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+body {
+  background: var(--bg) !important; /* Override radial gradient */
+}
+
+header, .card, .mobile-nav, .toast, aside.sidebar-rail.card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--panel-strong) !important;
+}
+
+header {
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), var(--shadow-line) !important;
+}
+
+.note {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03), var(--shadow-line) !important;
+  background: var(--panel) !important;
+}
+
+.note:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05), var(--shadow-line) !important;
+  transform: translateY(-1px) !important;
+}
+
+.kanban-column {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Old UI Redesign Tweaks */
 :root {
   --radius: 16px;
   --radius-sm: 10px;
