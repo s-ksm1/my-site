@@ -209,6 +209,46 @@
         </div>
       </div>
     </div>
+
+    <!-- Notion-style Editor Overlay -->
+    <div id="notion-editor-overlay" class="notion-editor-overlay hidden">
+      <div class="notion-editor-backdrop" id="notion-editor-backdrop"></div>
+      <div class="notion-editor-container">
+        <div class="notion-editor-toolbar">
+          <button type="button" class="notion-btn-back" id="notion-back-btn">← Back</button>
+          <div class="notion-editor-meta">
+            <span id="notion-status" class="notion-status">Saved</span>
+          </div>
+          <button type="button" class="notion-btn-close" id="notion-close-btn">✕</button>
+        </div>
+        
+        <div class="notion-content-scroll">
+          <div class="notion-cover-wrapper" id="notion-cover-area">
+            <!-- Cover image will be injected here -->
+          </div>
+          
+          <div class="notion-editor-body">
+            <div class="notion-icon-wrapper" id="notion-icon-area">
+              <span class="notion-icon" id="notion-emoji">📄</span>
+            </div>
+            
+            <input type="text" id="notion-title" class="notion-title-input" placeholder="Untitled" />
+            
+            <div id="notion-blocks" class="notion-blocks-container">
+              <!-- Blocks will be injected here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slash Command Menu -->
+      <div id="slash-menu" class="slash-menu hidden">
+        <div class="slash-menu-items" id="slash-menu-list">
+          <!-- Menu items injected by JS -->
+        </div>
+      </div>
+    </div>
+
     <script src="/app.js"></script>
   </body>
   </html>

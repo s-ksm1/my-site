@@ -1020,7 +1020,7 @@ async function focusNewNoteComposer() {
   
   const newNote = {
     title: "",
-    content: "",
+    content: "[]", // Empty block array
     category: category
   };
   
@@ -1037,18 +1037,13 @@ async function focusNewNoteComposer() {
       setMobilePanel("notes");
     }
 
-    requestAnimationFrame(() => {
-      const noteEl = document.querySelector(`.note[data-id="${createdNote.id}"]`);
-      if (noteEl) {
-        noteEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const titleInput = noteEl.querySelector('.note-fusion-title');
-        if (titleInput) titleInput.focus();
-      }
-    });
+    // Open Notion-style editor instead of focusing inline
+    openNotionEditor(createdNote.id);
   } catch (err) {
     showToast(t("syncError") || err.message, { variant: "error" });
   }
 }
+
 
 function syncDesktopPanels() {
   if (!asidePanel || !notesPanel || !mobileNav) return;
@@ -1412,28 +1407,32 @@ async function flushNoteAutosave(article, options = {}) {
 }
 
 function noteArticleHtml(n) {
+  // Simple preview parsing
+  let previewText = "";
+  try {
+    const blocks = JSON.parse(n.content);
+    if (Array.isArray(blocks)) {
+      previewText = blocks.map(b => b.content.replace(/<[^>]*>/g, '')).join(" ").slice(0, 100);
+    }
+  } catch (e) {
+    previewText = String(n.content || "").slice(0, 100);
+  }
+
   return `
     <article class="note" data-id="${n.id}" draggable="true">
-      <div class="note-editor-fusion">
-        <input type="text" data-role="title" class="note-fusion-title" maxlength="150" spellcheck="true" value="${escapeHtml(n.title)}" />
-        <textarea data-role="content" class="note-fusion-body" rows="7" spellcheck="true">${escapeHtml(n.content)}</textarea>
+      <div class="note-preview-header">
+        <span class="note-preview-icon">${n.icon || "📄"}</span>
+        <h4 class="note-preview-title">${escapeHtml(n.title)}</h4>
       </div>
-      <div class="meta">${categoryLabel(n.category)} — ${formatDate(n.updatedAt)}</div>
+      <div class="note-preview-content">${escapeHtml(previewText)}</div>
+      <div class="meta">${formatDate(n.updatedAt)}</div>
       <div class="note-actions">
-        <select data-role="category">
-          ${["projects", "areas", "resources", "archives"]
-            .map(
-              (c) =>
-                `<option value="${c}" ${n.category === c ? "selected" : ""}>${escapeHtml(categoryLabel(c))}</option>`
-            )
-            .join("")}
-        </select>
-        <button type="button" data-role="save">${escapeHtml(t("save"))}</button>
-        <button type="button" class="danger" data-role="delete">${escapeHtml(t("del"))}</button>
+        <button type="button" class="danger" data-role="delete" title="Delete">✕</button>
       </div>
     </article>
   `;
 }
+
 
 function renderNotes() {
   const q = searchQuery.trim();
@@ -2034,19 +2033,312 @@ notesWrap.addEventListener("click", async (event) => {
   const article = target.closest(".note");
   if (!article) return;
 
+  const id = article.dataset.id;
+
   if (target.dataset.role === "save") {
     try {
       await flushNoteAutosave(article, { force: true });
     } catch (error) {
       showToast(translateClientError(error.message), { variant: "error", duration: 5000 });
     }
+    return;
   }
+  
   if (target.dataset.role === "delete") {
     await deleteNoteWithUndo(id);
+    return;
+  }
+
+  // If we clicked the article but not a specific button, open Notion editor
+  if (id) {
+    openNotionEditor(id);
   }
 });
 
+
+// --- Notion-style Editor Logic ---
+let currentEditingNoteId = null;
+let slashMenuVisible = false;
+let selectedSlashIndex = 0;
+let lastSlashRange = null;
+
+const NOTION_BLOCK_TYPES = [
+  { type: 'text', label: 'Text', desc: 'Just start writing with plain text.', icon: '📄' },
+  { type: 'h1', label: 'Heading 1', desc: 'Big section heading.', icon: 'H1' },
+  { type: 'h2', label: 'Heading 2', desc: 'Medium section heading.', icon: 'H2' },
+  { type: 'h3', label: 'Heading 3', desc: 'Small section heading.', icon: 'H3' },
+  { type: 'bullet', label: 'Bulleted list', desc: 'Create a simple bulleted list.', icon: '•' }
+];
+
+const notionOverlay = document.getElementById("notion-editor-overlay");
+const notionTitle = document.getElementById("notion-title");
+const notionBlocks = document.getElementById("notion-blocks");
+const notionStatus = document.getElementById("notion-status");
+const slashMenu = document.getElementById("slash-menu");
+const slashMenuList = document.getElementById("slash-menu-list");
+const notionCloseBtn = document.getElementById("notion-close-btn");
+const notionBackBtn = document.getElementById("notion-back-btn");
+const notionBackdrop = document.getElementById("notion-editor-backdrop");
+
+async function openNotionEditor(noteId) {
+  const note = notes.find(n => n.id === noteId);
+  if (!note) return;
+
+  currentEditingNoteId = noteId;
+  notionTitle.value = note.title === t("untitledNote") ? "" : note.title;
+  
+  // Set Icon
+  const emojiEl = document.getElementById("notion-emoji");
+  if (emojiEl) emojiEl.textContent = note.icon || "📄";
+
+  // Set Cover
+  const coverArea = document.getElementById("notion-cover-area");
+  if (coverArea) {
+    if (note.cover) {
+      coverArea.style.backgroundImage = `url(${note.cover})`;
+    } else {
+      coverArea.style.backgroundImage = ''; // Use default CSS gradient
+    }
+  }
+
+  // Render Blocks
+  notionBlocks.innerHTML = "";
+  const content = note.content || "";
+  
+  // Simple block parsing: split by double newlines or use tags if present
+  let blocksData = [];
+  try {
+    blocksData = JSON.parse(content);
+    if (!Array.isArray(blocksData)) throw new Error();
+  } catch (e) {
+    // Fallback for plain text
+    blocksData = content.split('\n').map(line => ({
+      type: 'text',
+      content: line
+    }));
+  }
+
+  if (blocksData.length === 0) {
+    blocksData = [{ type: 'text', content: '' }];
+  }
+
+  blocksData.forEach(data => {
+    addBlock(data.type, data.content);
+  });
+
+  notionOverlay.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  
+  notionStatus.textContent = "Saved";
+}
+
+function closeNotionEditor() {
+  saveCurrentNote();
+  notionOverlay.classList.add("hidden");
+  document.body.style.overflow = "";
+  currentEditingNoteId = null;
+  hideSlashMenu();
+  renderNotes();
+}
+
+function addBlock(type = 'text', content = '', afterEl = null) {
+  const block = document.createElement("div");
+  block.className = "notion-block";
+  block.contentEditable = "true";
+  block.dataset.type = type;
+  block.dataset.placeholder = type === 'text' ? "Type '/' for commands..." : "Heading";
+  block.innerHTML = content;
+
+  if (afterEl && afterEl.nextSibling) {
+    notionBlocks.insertBefore(block, afterEl.nextSibling);
+  } else {
+    notionBlocks.appendChild(block);
+  }
+
+  block.addEventListener("keydown", handleBlockKeyDown);
+  block.addEventListener("input", handleBlockInput);
+  
+  return block;
+}
+
+function handleBlockKeyDown(e) {
+  const block = e.currentTarget;
+
+  if (e.key === "Enter") {
+    if (slashMenuVisible) {
+      e.preventDefault();
+      applySelectedSlashCommand();
+      return;
+    }
+    e.preventDefault();
+    const newBlock = addBlock('text', '', block);
+    newBlock.focus();
+  }
+
+  if (e.key === "Backspace" && block.textContent === "" && notionBlocks.children.length > 1) {
+    e.preventDefault();
+    const prev = block.previousElementSibling;
+    block.remove();
+    if (prev) {
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(prev);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      prev.focus();
+    }
+  }
+
+  if (e.key === "ArrowUp") {
+    if (slashMenuVisible) {
+      e.preventDefault();
+      selectedSlashIndex = (selectedSlashIndex - 1 + NOTION_BLOCK_TYPES.length) % NOTION_BLOCK_TYPES.length;
+      renderSlashMenu();
+      return;
+    }
+    const prev = block.previousElementSibling;
+    if (prev) {
+        e.preventDefault();
+        prev.focus();
+    }
+  }
+
+  if (e.key === "ArrowDown") {
+    if (slashMenuVisible) {
+      e.preventDefault();
+      selectedSlashIndex = (selectedSlashIndex + 1) % NOTION_BLOCK_TYPES.length;
+      renderSlashMenu();
+      return;
+    }
+    const next = block.nextElementSibling;
+    if (next) {
+        e.preventDefault();
+        next.focus();
+    }
+  }
+
+  if (e.key === "Escape") {
+    if (slashMenuVisible) {
+      hideSlashMenu();
+    }
+  }
+}
+
+function handleBlockInput(e) {
+  const block = e.currentTarget;
+  const text = block.textContent;
+  
+  if (text.startsWith("/")) {
+    showSlashMenu(block);
+  } else {
+    hideSlashMenu();
+  }
+  
+  saveCurrentNoteDebounced();
+}
+
+function showSlashMenu(block) {
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  
+  lastSlashRange = range.cloneRange();
+  
+  slashMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
+  slashMenu.style.left = `${rect.left + window.scrollX}px`;
+  slashMenu.classList.remove("hidden");
+  slashMenuVisible = true;
+  selectedSlashIndex = 0;
+  renderSlashMenu();
+}
+
+function hideSlashMenu() {
+  slashMenu.classList.add("hidden");
+  slashMenuVisible = false;
+}
+
+function renderSlashMenu() {
+  slashMenuList.innerHTML = NOTION_BLOCK_TYPES.map((opt, i) => `
+    <div class="slash-menu-item ${i === selectedSlashIndex ? 'selected' : ''}" data-index="${i}">
+      <div class="slash-icon">${opt.icon}</div>
+      <div class="slash-info">
+        <div class="slash-label">${opt.label}</div>
+        <div class="slash-desc">${opt.desc}</div>
+      </div>
+    </div>
+  `).join("");
+
+  slashMenuList.querySelectorAll(".slash-menu-item").forEach(item => {
+    item.onclick = () => {
+      selectedSlashIndex = parseInt(item.dataset.index);
+      applySelectedSlashCommand();
+    };
+  });
+}
+
+function applySelectedSlashCommand() {
+  const opt = NOTION_BLOCK_TYPES[selectedSlashIndex];
+  const selection = window.getSelection();
+  const block = selection.anchorNode.parentElement.closest(".notion-block");
+  
+  if (block) {
+    block.dataset.type = opt.type;
+    block.dataset.placeholder = opt.label;
+    block.textContent = "";
+    block.focus();
+  }
+  
+  hideSlashMenu();
+}
+
+function serializeBlocks() {
+  const blocks = Array.from(notionBlocks.children).map(block => ({
+    type: block.dataset.type,
+    content: block.innerHTML
+  }));
+  return JSON.stringify(blocks);
+}
+
+const saveCurrentNoteDebounced = debounce(() => {
+  saveCurrentNote();
+}, 1000);
+
+async function saveCurrentNote() {
+  if (!currentEditingNoteId) return;
+  
+  notionStatus.textContent = "Saving...";
+  
+  const title = notionTitle.value.trim() || t("untitledNote");
+  const content = serializeBlocks();
+  
+  try {
+    const data = await api(`/api/notes/${currentEditingNoteId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        title,
+        content,
+        category: notes.find(n => n.id === currentEditingNoteId)?.category || "resources"
+      })
+    });
+    
+    const idx = notes.findIndex(n => n.id === currentEditingNoteId);
+    if (idx !== -1) notes[idx] = data.note;
+    
+    notionStatus.textContent = "Saved";
+  } catch (err) {
+    notionStatus.textContent = "Error saving";
+  }
+}
+
+notionTitle.addEventListener("input", saveCurrentNoteDebounced);
+notionCloseBtn.onclick = closeNotionEditor;
+notionBackBtn.onclick = closeNotionEditor;
+notionBackdrop.onclick = closeNotionEditor;
+
 async function boot() {
+
   bindSegmentListenersOnce();
   if (!I18N[currentLang]) currentLang = "ru";
   applyLanguage();

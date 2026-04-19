@@ -387,14 +387,15 @@ details#settings-drawer summary::-webkit-details-marker { display: none; }
   background: var(--card-bg);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 16px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  cursor: grab;
+  cursor: pointer;
   position: relative;
+  overflow: hidden;
 }
 
 .note:hover {
@@ -402,52 +403,67 @@ details#settings-drawer summary::-webkit-details-marker { display: none; }
   transform: translateY(-2px);
 }
 
-.note:active { cursor: grabbing; }
-.note.dragging { opacity: 0.5; box-shadow: var(--shadow-lg); transform: scale(1.02); }
+.note-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
 
-.note-fusion-title {
+.note-preview-icon {
+  font-size: 18px;
+}
+
+.note-preview-title {
   font-size: 15px;
   font-weight: 600;
-  border: none;
-  padding: 0;
-  background: transparent;
+  margin: 0;
   color: var(--text-primary);
-  line-height: 1.3;
-}
-.note-fusion-body {
-  font-size: 14px;
-  border: none;
-  padding: 0;
-  background: transparent;
-  color: var(--text-secondary);
-  resize: none;
-  min-height: 60px;
-  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.note .meta { font-size: 12px; color: var(--text-secondary); margin-top: auto; }
+.note-preview-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+  height: 3.5em;
+}
+
+.note .meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: auto;
+  opacity: 0.7;
+}
 
 .note-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 8px;
+  right: 8px;
 }
-.note:hover .note-actions, .note:focus-within .note-actions { opacity: 1; }
+
+.note:hover .note-actions {
+  opacity: 1;
+}
 
 .note-actions button {
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 4px 8px;
+  font-size: 11px;
   background: var(--bg-main);
   color: var(--text-secondary);
   border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
 }
-.note-actions button:hover { color: var(--text-primary); border-color: var(--border-strong); }
-.note-actions button.danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
 
 /* Create Panel - Expandable Inline Bar */
 .create-column {
@@ -780,4 +796,263 @@ header, .sidebar-rail, .main-content-area, .auth-main, .note, .note-editor-fusio
 }
 .sidebar-rail {
   background: var(--bg-sidebar);
+}
+
+/* Notion-style Editor */
+.notion-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 0;
+  animation: fadeIn 0.2s ease;
+}
+
+.notion-editor-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.notion-editor-container {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  min-height: 100vh;
+  background: var(--bg-main);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notion-editor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 10;
+  border-bottom: 1px solid var(--border-light);
+}
+
+:root[data-theme="dark"] .notion-editor-toolbar {
+  background: rgba(20, 20, 25, 0.6);
+}
+
+.notion-btn-back, .notion-btn-close {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s, background 0.2s;
+}
+
+.notion-btn-back:hover, .notion-btn-close:hover {
+  background: var(--bg-sidebar);
+  color: var(--text-primary);
+}
+
+.notion-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.notion-content-scroll {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.notion-cover-wrapper {
+  width: 100%;
+  height: 240px;
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.notion-editor-body {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 40px 100px;
+  position: relative;
+}
+
+.notion-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-main);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin-top: -40px;
+  margin-bottom: 32px;
+  border: 4px solid var(--bg-main);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 2;
+}
+
+.notion-title-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+  padding: 0;
+  outline: none;
+  line-height: 1.2;
+}
+
+.notion-title-input::placeholder {
+  color: var(--border-strong);
+}
+
+.notion-blocks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notion-block {
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-height: 1.5em;
+  position: relative;
+  outline: none;
+  transition: background 0.1s;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.notion-block:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+:root[data-theme="dark"] .notion-block:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.notion-block[data-type="h1"] { font-size: 32px; font-weight: 700; margin-top: 24px; }
+.notion-block[data-type="h2"] { font-size: 24px; font-weight: 600; margin-top: 16px; }
+.notion-block[data-type="h3"] { font-size: 18px; font-weight: 600; margin-top: 12px; }
+.notion-block[data-type="bullet"] { display: list-item; list-style-type: disc; margin-left: 24px; }
+
+.notion-block:empty:before {
+  content: attr(data-placeholder);
+  color: var(--text-secondary);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Slash Menu */
+.slash-menu {
+  position: fixed;
+  z-index: 3000;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 6px;
+  animation: scaleIn 0.1s ease;
+}
+
+.slash-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.slash-menu-item:hover, .slash-menu-item.selected {
+  background: var(--accent-bg);
+}
+
+.slash-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--bg-main);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border: 1px solid var(--border-light);
+}
+
+.slash-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.slash-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.slash-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .notion-editor-body {
+    padding: 0 20px 80px;
+  }
+  .notion-title-input {
+    font-size: 32px;
+  }
+  .notion-cover-wrapper {
+    height: 160px;
+  }
 }
