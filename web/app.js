@@ -1462,6 +1462,7 @@ async function flushNoteAutosave(article, options = {}) {
 function noteArticleHtml(n) {
   // Simple preview parsing
   let previewText = "";
+  const updatedAtLabel = formatDate(n.updatedAt);
   try {
     const blocks = JSON.parse(n.content);
     if (Array.isArray(blocks)) {
@@ -1478,15 +1479,21 @@ function noteArticleHtml(n) {
 
   return `
     <article class="note" data-id="${n.id}" draggable="true">
+      <div class="note-chrome">
+        <span class="note-preview-badge">${escapeHtml(categorySidebarLabel(n.category))}</span>
+        <div class="note-actions">
+          <button type="button" class="danger" data-role="delete" title="${escapeHtml(t("deleteNoteTitle"))}">✕</button>
+        </div>
+      </div>
       <div class="note-preview-header">
         <span class="note-preview-icon">${n.icon || "📄"}</span>
-        <h4 class="note-preview-title">${escapeHtml(n.title)}</h4>
+        <div class="note-preview-headings">
+          <h4 class="note-preview-title">${escapeHtml(n.title)}</h4>
+          <p class="note-preview-date">${escapeHtml(updatedAtLabel)}</p>
+        </div>
       </div>
       <div class="note-preview-content">${escapeHtml(previewText)}</div>
-      <div class="meta">${formatDate(n.updatedAt)}</div>
-      <div class="note-actions">
-        <button type="button" class="danger" data-role="delete" title="${escapeHtml(t("deleteNoteTitle"))}">✕</button>
-      </div>
+      <div class="meta">${escapeHtml(updatedAtLabel)}</div>
     </article>
   `;
 }
