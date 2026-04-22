@@ -1,8 +1,21 @@
-const nodemailer = require("nodemailer");
-
 const DEFAULT_FEEDBACK_TO = "bumblebee.autobot.bee@gmail.com";
 
 let transporterCache = null;
+let nodemailerCache;
+
+function getNodemailer() {
+  if (nodemailerCache !== undefined) {
+    return nodemailerCache;
+  }
+  try {
+    nodemailerCache = require("nodemailer");
+  } catch (error) {
+    nodemailerCache = null;
+    // eslint-disable-next-line no-console
+    console.warn("[mail] nodemailer is not installed; email delivery is disabled.");
+  }
+  return nodemailerCache;
+}
 
 function getTransporter() {
   if (transporterCache) return transporterCache;
@@ -10,6 +23,8 @@ function getTransporter() {
   const user = String(process.env.SMTP_USER || "").trim();
   const pass = String(process.env.SMTP_PASS || "").trim();
   if (!host || !user || !pass) return null;
+  const nodemailer = getNodemailer();
+  if (!nodemailer) return null;
   transporterCache = nodemailer.createTransport({
     host,
     port: Number(process.env.SMTP_PORT || 587),

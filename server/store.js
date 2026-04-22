@@ -10,6 +10,10 @@ const baseData = {
   notes: []
 };
 
+function cloneValue(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function getEncryptionKey() {
   const secret = String(process.env.APP_ENCRYPTION_KEY || "").trim();
   if (!secret) return null;
@@ -54,13 +58,28 @@ function ensureFiles() {
 
 function readJson(filePath, fallback) {
   const key = getEncryptionKey();
+  let raw;
   try {
-    const raw = fs.readFileSync(filePath, "utf-8");
+    raw = fs.readFileSync(filePath, "utf-8");
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return cloneValue(fallback);
+    }
+    throw error;
+  }
+
+  try {
     const parsed = JSON.parse(raw);
     if (!key) return parsed;
     return decryptObject(parsed, key);
   } catch (error) {
-    return fallback;
+    const fileName = path.basename(filePath);
+    const details = key
+      ? `Could not read ${fileName}. Check APP_ENCRYPTION_KEY and file integrity.`
+      : `Could not read ${fileName}. Check file JSON integrity.`;
+    const wrapped = new Error(details);
+    wrapped.cause = error;
+    throw wrapped;
   }
 }
 

@@ -167,6 +167,13 @@ const I18N = {
     authUserCount: "Уже зарегистрировано пользователей: {n}",
     emptyNoteCombined: "Введите заголовок или текст заметки.",
     untitledNote: "Без названия",
+    deleteNoteTitle: "Удалить заметку",
+    notionBack: "Назад",
+    notionClose: "Закрыть редактор",
+    notionSaved: "Сохранено",
+    notionSaving: "Сохранение...",
+    notionSaveError: "Ошибка сохранения",
+    notionOpenError: "Не удалось открыть редактор",
     issuePlaceholder: "Опишите проблему",
     displayNamePlaceholder: "Отображаемое имя",
     appTitlePlaceholder: "Название приложения",
@@ -308,6 +315,13 @@ const I18N = {
     authUserCount: "People registered so far: {n}",
     emptyNoteCombined: "Add a title or some note text.",
     untitledNote: "Untitled",
+    deleteNoteTitle: "Delete note",
+    notionBack: "Back",
+    notionClose: "Close editor",
+    notionSaved: "Saved",
+    notionSaving: "Saving...",
+    notionSaveError: "Save failed",
+    notionOpenError: "Could not open editor",
     issuePlaceholder: "Describe the issue",
     displayNamePlaceholder: "Display name",
     appTitlePlaceholder: "App title",
@@ -449,6 +463,13 @@ const I18N = {
     authUserCount: "Hozircha ro‘yxatdan o‘tganlar: {n}",
     emptyNoteCombined: "Sarlavha yoki matn kiriting.",
     untitledNote: "Nomsiz",
+    deleteNoteTitle: "Eslatmani o‘chirish",
+    notionBack: "Orqaga",
+    notionClose: "Muharrirni yopish",
+    notionSaved: "Saqlandi",
+    notionSaving: "Saqlanmoqda...",
+    notionSaveError: "Saqlashda xato",
+    notionOpenError: "Muharrirni ochib bo‘lmadi",
     issuePlaceholder: "Muammoni yozing",
     displayNamePlaceholder: "Ko'rinadigan ism",
     appTitlePlaceholder: "Ilova nomi",
@@ -544,6 +565,12 @@ function t(key) {
   return I18N[currentLang]?.[key] || I18N.en[key] || key;
 }
 
+const UNTITLED_NOTE_TITLES = new Set(
+  Object.values(I18N)
+    .map((pack) => String(pack?.untitledNote || "").trim())
+    .filter(Boolean)
+);
+
 function translateApiError(raw) {
   const s = raw != null ? String(raw) : "";
   const mapped = API_ERROR_MAP[s];
@@ -621,6 +648,16 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function htmlToPlainText(value) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = String(value || "");
+  return tmp.textContent || "";
+}
+
+function isUntitledNoteTitle(value) {
+  return UNTITLED_NOTE_TITLES.has(String(value || "").trim());
 }
 
 function renderAboutBody() {
@@ -958,6 +995,12 @@ function applyLanguage() {
     searchInput.placeholder = t("searchPlaceholder");
     searchInput.title = t("searchFocusShortcut");
   }
+  if (notionTitle) notionTitle.placeholder = t("untitledNote");
+  if (notionBackBtn) notionBackBtn.textContent = `← ${t("notionBack")}`;
+  if (notionCloseBtn) {
+    notionCloseBtn.setAttribute("aria-label", t("notionClose"));
+    notionCloseBtn.title = t("notionClose");
+  }
   if (noteCreateTitle) noteCreateTitle.placeholder = t("noteTitlePlaceholder");
   if (noteCreateBody) noteCreateBody.placeholder = t("noteBodyPlaceholder");
   if (issueText) issueText.placeholder = t("issuePlaceholder");
@@ -984,9 +1027,12 @@ function applyLanguage() {
 }
 
 function setMobilePanel(nextPanel) {
-  mobilePanel = nextPanel;
   const compact = window.matchMedia("(max-width: 900px)").matches;
   if (!compact || !asidePanel || !notesPanel || !mobileNav) return;
+  if (nextPanel === "create" && !createPanel) {
+    nextPanel = "notes";
+  }
+  mobilePanel = nextPanel;
 
   mobileNav.classList.remove("hidden");
   const settingsBlock = asidePanel.querySelector('[data-mobile-panel="settings"]');
@@ -1419,7 +1465,12 @@ function noteArticleHtml(n) {
   try {
     const blocks = JSON.parse(n.content);
     if (Array.isArray(blocks)) {
-      previewText = blocks.map(b => b.content.replace(/<[^>]*>/g, '')).join(" ").slice(0, 100);
+      previewText = blocks
+        .map((b) => htmlToPlainText(b.content))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 100);
     }
   } catch (e) {
     previewText = String(n.content || "").slice(0, 100);
@@ -1434,7 +1485,7 @@ function noteArticleHtml(n) {
       <div class="note-preview-content">${escapeHtml(previewText)}</div>
       <div class="meta">${formatDate(n.updatedAt)}</div>
       <div class="note-actions">
-        <button type="button" class="danger" data-role="delete" title="Delete">✕</button>
+        <button type="button" class="danger" data-role="delete" title="${escapeHtml(t("deleteNoteTitle"))}">✕</button>
       </div>
     </article>
   `;
@@ -1681,7 +1732,7 @@ async function createNote() {
     const title = titleRaw.trim().slice(0, 150) || t("untitledNote");
     const payload = {
       title,
-      category: noteCategory.value,
+      category: noteCategory?.value || activeFolder || "resources",
       content: bodyRaw
     };
     const data = await api("/api/notes", {
@@ -1878,7 +1929,13 @@ if (mobileNav) {
   mobileNav.addEventListener("click", (event) => {
     const target = event.target.closest("[data-mobile-target]");
     if (!target) return;
-    setMobilePanel(target.dataset.mobileTarget);
+    const nextPanel = target.dataset.mobileTarget;
+    if (nextPanel === "create" && !createPanel) {
+      setMobilePanel("notes");
+      focusNewNoteComposer();
+      return;
+    }
+    setMobilePanel(nextPanel);
   });
 }
 if (profileLinkInput) {
@@ -2102,6 +2159,10 @@ const notionCloseBtn = document.getElementById("notion-close-btn");
 const notionBackBtn = document.getElementById("notion-back-btn");
 const notionBackdrop = document.getElementById("notion-editor-backdrop");
 
+function setNotionStatus(key) {
+  if (notionStatus) notionStatus.textContent = t(key);
+}
+
 async function openNotionEditor(noteId) {
   if (notionOverlay && !notionOverlay.classList.contains("hidden")) return;
   
@@ -2110,7 +2171,7 @@ async function openNotionEditor(noteId) {
 
   try {
     currentEditingNoteId = noteId;
-    notionTitle.value = note.title === t("untitledNote") ? "" : note.title;
+    notionTitle.value = isUntitledNoteTitle(note.title) ? "" : note.title;
     
     // Set Icon
     const emojiEl = document.getElementById("notion-emoji");
@@ -2151,10 +2212,10 @@ async function openNotionEditor(noteId) {
 
     notionOverlay.classList.remove("hidden");
     document.body.style.overflow = "hidden";
-    notionStatus.textContent = "Saved";
+    setNotionStatus("notionSaved");
   } catch (err) {
     console.error("Failed to open Notion editor:", err);
-    showToast("Error opening editor", { variant: "error" });
+    showToast(t("notionOpenError"), { variant: "error" });
     closeNotionEditor();
   }
 }
@@ -2176,7 +2237,7 @@ function addBlock(type = 'text', content = '', afterEl = null) {
   block.contentEditable = "true";
   block.dataset.type = type;
   block.dataset.placeholder = type === 'text' ? "Type '/' for commands..." : "Heading";
-  block.innerHTML = content;
+  block.textContent = htmlToPlainText(content);
 
   if (afterEl && afterEl.nextSibling) {
     notionBlocks.insertBefore(block, afterEl.nextSibling);
@@ -2323,7 +2384,7 @@ function applySelectedSlashCommand() {
   if (block) {
     block.dataset.type = opt.type;
     block.dataset.placeholder = opt.label;
-    block.innerHTML = ""; // Use innerHTML for consistency
+    block.textContent = "";
     block.focus();
   }
   
@@ -2333,7 +2394,7 @@ function applySelectedSlashCommand() {
 function serializeBlocks() {
   const blocks = Array.from(notionBlocks.children).map(block => ({
     type: block.dataset.type,
-    content: block.innerHTML
+    content: block.textContent || ""
   }));
   return JSON.stringify(blocks);
 }
@@ -2345,7 +2406,7 @@ const saveCurrentNoteDebounced = debounce(() => {
 async function saveCurrentNote() {
   if (!currentEditingNoteId) return;
   
-  notionStatus.textContent = "Saving...";
+  setNotionStatus("notionSaving");
   
   const title = notionTitle.value.trim() || t("untitledNote");
   const content = serializeBlocks();
@@ -2363,9 +2424,9 @@ async function saveCurrentNote() {
     const idx = notes.findIndex(n => n.id === currentEditingNoteId);
     if (idx !== -1) notes[idx] = data.note;
     
-    notionStatus.textContent = "Saved";
+    setNotionStatus("notionSaved");
   } catch (err) {
-    notionStatus.textContent = "Error saving";
+    setNotionStatus("notionSaveError");
   }
 }
 
@@ -2481,9 +2542,9 @@ function startTutorialIfNeeded() {
 
   const steps = [
     {
-      target: document.getElementById("note-create-title"),
+      target: toolbarNewNote || notesToolbar,
       title: "Создание заметок",
-      text: "Быстро записывайте свои идеи. Они сохраняются автоматически."
+      text: "Создавайте заметки из кнопки сверху. После клика сразу откроется редактор."
     },
     {
       target: document.querySelector(".sidebar-rail"),
