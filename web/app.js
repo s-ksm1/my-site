@@ -1027,7 +1027,7 @@ function applyLanguage() {
 }
 
 function setMobilePanel(nextPanel) {
-  const compact = window.matchMedia("(max-width: 900px)").matches;
+  const compact = window.matchMedia("(max-width: 980px)").matches;
   if (!compact || !asidePanel || !notesPanel || !mobileNav) return;
   if (nextPanel === "create" && !createPanel) {
     nextPanel = "notes";
@@ -1049,7 +1049,7 @@ function setMobilePanel(nextPanel) {
     if (notesToolbar) notesToolbar.classList.add("hidden");
     if (notesMain) notesMain.classList.add("hidden");
   } else {
-    asidePanel.classList.remove("hidden");
+    asidePanel.classList.add("hidden");
     notesPanel.classList.remove("hidden");
     if (sidebarTreeSection) sidebarTreeSection.classList.remove("hidden");
     if (settingsBlock) settingsBlock.classList.add("hidden");
@@ -1084,7 +1084,7 @@ async function focusNewNoteComposer() {
     renderNotes();
     
     // Switch to notes view on mobile if needed
-    const compact = window.matchMedia("(max-width: 900px)").matches;
+    const compact = window.matchMedia("(max-width: 980px)").matches;
     if (compact) {
       setMobilePanel("notes");
     }
@@ -1100,7 +1100,7 @@ async function focusNewNoteComposer() {
 
 function syncDesktopPanels() {
   if (!asidePanel || !notesPanel || !mobileNav) return;
-  const compact = window.matchMedia("(max-width: 900px)").matches;
+  const compact = window.matchMedia("(max-width: 980px)").matches;
   const asideBlocks = Array.from(asidePanel.querySelectorAll("[data-mobile-panel]"));
   if (!compact) {
     asidePanel.classList.remove("hidden");
